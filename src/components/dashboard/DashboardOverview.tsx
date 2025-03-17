@@ -3,7 +3,7 @@ import React from 'react';
 import StatusCard from './StatusCard';
 import { 
   Truck, Users, AlertTriangle, CheckCircle, 
-  Clock, GasPump, Settings, Calendar
+  Clock, Fuel, Settings, Calendar
 } from 'lucide-react';
 import { DashboardStats } from '@/types';
 
@@ -110,7 +110,7 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({
           <StatusCard 
             title="Abastecimentos Hoje" 
             value={3} 
-            icon={GasPump} 
+            icon={Fuel} 
             status="info" 
           />
           <StatusCard 
