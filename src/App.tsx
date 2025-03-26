@@ -8,6 +8,10 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import ForkliftsPage from "./pages/Forklifts";
 import ReportsPage from "./pages/Reports";
+import OperatorsPage from "./pages/Operators";
+import OperationsPage from "./pages/Operations";
+import MaintenancePage from "./pages/Maintenance";
+import GasSupplyPage from "./pages/GasSupply";
 
 const queryClient = new QueryClient();
 
@@ -20,10 +24,10 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/forklifts" element={<ForkliftsPage />} />
-          <Route path="/operators" element={<NotFound />} />
-          <Route path="/operations" element={<NotFound />} />
-          <Route path="/maintenance" element={<NotFound />} />
-          <Route path="/gas-supply" element={<NotFound />} />
+          <Route path="/operators" element={<OperatorsPage />} />
+          <Route path="/operations" element={<OperationsPage />} />
+          <Route path="/maintenance" element={<MaintenancePage />} />
+          <Route path="/gas-supply" element={<GasSupplyPage />} />
           <Route path="/reports" element={<ReportsPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
