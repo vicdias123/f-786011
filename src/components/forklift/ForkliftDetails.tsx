@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Forklift, ForkliftStatus } from '@/types';
 import { Badge } from "@/components/ui/badge";
-import { BarChart3, Calendar, Gauge, Info, Settings, Tool, Truck } from 'lucide-react';
+import { BarChart3, Calendar, Gauge, Info, Settings, Wrench, Truck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface ForkliftDetailsProps {
@@ -107,7 +107,7 @@ const ForkliftDetails = ({ open, onOpenChange, forklift, onEdit }: ForkliftDetai
             
             <div className="mt-8">
               <div className="flex items-center gap-2 mb-3">
-                <Tool className="h-4 w-4 text-muted-foreground" />
+                <Wrench className="h-4 w-4 text-muted-foreground" />
                 <span className="text-sm font-medium">Manutenção</span>
               </div>
               
