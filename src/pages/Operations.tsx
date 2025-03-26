@@ -8,9 +8,12 @@ import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Calendar, Clock, Filter, Plus, Search, Truck, User } from 'lucide-react';
 import { Operation } from '@/types';
+import { useToast } from '@/hooks/use-toast';
+import OperationDialog from '@/components/operations/OperationDialog';
+import OperationDetails from '@/components/operations/OperationDetails';
 
 // Mock data for operations
-const mockOperations: Operation[] = [
+const initialOperations: Operation[] = [
   {
     id: 'OP001',
     operatorId: 'OP001',
@@ -65,18 +68,43 @@ const mockOperations: Operation[] = [
   },
 ];
 
+// Mock data for available operators and forklifts
+const availableOperators = [
+  { id: 'OP001', name: 'Carlos Silva' },
+  { id: 'OP002', name: 'Maria Oliveira' },
+  { id: 'OP003', name: 'João Pereira' },
+  { id: 'OP004', name: 'Ana Costa' },
+  { id: 'OP005', name: 'Pedro Santos' }
+];
+
+const availableForklifts = [
+  { id: 'G001', model: 'Toyota 8FGU25' },
+  { id: 'G004', model: 'Yale GLP050' },
+  { id: 'E002', model: 'Hyster E50XN' },
+  { id: 'G006', model: 'Caterpillar DP40' }
+];
+
 const OperationsPage = () => {
   const isMobile = useIsMobile();
+  const { toast } = useToast();
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState<string>('all');
   const [sector, setSector] = useState<string>('all');
+  const [operations, setOperations] = useState<Operation[]>(initialOperations);
+  
+  // Dialog states
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
+  const [selectedOperation, setSelectedOperation] = useState<Operation | null>(null);
   
   // Filter operations based on search and filters
-  const filteredOperations = mockOperations.filter(operation => {
+  const filteredOperations = operations.filter(operation => {
     // Search filter
     const matchesSearch = operation.operatorName.toLowerCase().includes(search.toLowerCase()) || 
                           operation.forkliftModel.toLowerCase().includes(search.toLowerCase()) ||
-                          operation.sector.toLowerCase().includes(search.toLowerCase());
+                          operation.sector.toLowerCase().includes(search.toLowerCase()) ||
+                          operation.id.toLowerCase().includes(search.toLowerCase());
     
     // Status filter
     const matchesStatus = status === 'all' || operation.status === status;
@@ -107,7 +135,42 @@ const OperationsPage = () => {
   };
   
   // Get unique sectors for filter
-  const sectors = [...new Set(mockOperations.map(op => op.sector))];
+  const sectors = [...new Set(operations.map(op => op.sector))];
+
+  // Handle save operation
+  const handleSaveOperation = (operationData: Operation) => {
+    const isNewOperation = !operations.some(op => op.id === operationData.id);
+    
+    if (isNewOperation) {
+      // Add new operation
+      setOperations(prev => [operationData, ...prev]);
+      toast({
+        title: "Operação criada",
+        description: "A operação foi criada com sucesso."
+      });
+    } else {
+      // Update existing operation
+      setOperations(prev => 
+        prev.map(op => op.id === operationData.id ? operationData : op)
+      );
+      toast({
+        title: "Operação atualizada",
+        description: "A operação foi atualizada com sucesso."
+      });
+    }
+  };
+
+  // Open details dialog
+  const handleViewDetails = (operation: Operation) => {
+    setSelectedOperation(operation);
+    setDetailsDialogOpen(true);
+  };
+
+  // Open edit dialog from details
+  const handleEditFromDetails = () => {
+    setDetailsDialogOpen(false);
+    setEditDialogOpen(true);
+  };
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -142,7 +205,13 @@ const OperationsPage = () => {
                   Filtrar
                 </Button>
               </div>
-              <Button className="gap-2">
+              <Button 
+                className="gap-2"
+                onClick={() => {
+                  setSelectedOperation(null);
+                  setAddDialogOpen(true);
+                }}
+              >
                 <Plus className="w-4 h-4" />
                 Nova Operação
               </Button>
@@ -219,7 +288,13 @@ const OperationsPage = () => {
                     
                     <div className="border-t px-4 py-3 bg-muted/30 flex justify-between">
                       <span className="text-sm">Setor: {operation.sector}</span>
-                      <Button variant="ghost" size="sm">Detalhes</Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => handleViewDetails(operation)}
+                      >
+                        Detalhes
+                      </Button>
                     </div>
                   </div>
                 ))}
@@ -266,7 +341,13 @@ const OperationsPage = () => {
                             {formatTime(operation.startTime)} - {operation.endTime ? formatTime(operation.endTime) : 'Em andamento'}
                           </td>
                           <td className="p-4">
-                            <Button variant="ghost" size="sm">Detalhes</Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => handleViewDetails(operation)}
+                            >
+                              Detalhes
+                            </Button>
                           </td>
                         </tr>
                       ))}
@@ -283,6 +364,33 @@ const OperationsPage = () => {
           </div>
         </main>
       </div>
+
+      {/* Add Operation Dialog */}
+      <OperationDialog
+        open={addDialogOpen}
+        onOpenChange={setAddDialogOpen}
+        onSave={handleSaveOperation}
+        availableOperators={availableOperators}
+        availableForklifts={availableForklifts}
+      />
+      
+      {/* Edit Operation Dialog */}
+      <OperationDialog
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        operation={selectedOperation || undefined}
+        onSave={handleSaveOperation}
+        availableOperators={availableOperators}
+        availableForklifts={availableForklifts}
+      />
+      
+      {/* Operation Details Dialog */}
+      <OperationDetails
+        open={detailsDialogOpen}
+        onOpenChange={setDetailsDialogOpen}
+        operation={selectedOperation}
+        onEdit={handleEditFromDetails}
+      />
     </div>
   );
 };
