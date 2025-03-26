@@ -8,9 +8,11 @@ import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Calendar, Filter, Plus, Search, Truck, User, AlertOctagon } from 'lucide-react';
 import { Maintenance, MaintenanceStatus } from '@/types';
+import MaintenanceDialog from '@/components/maintenance/MaintenanceDialog';
+import { useToast } from '@/hooks/use-toast';
 
 // Mock data for maintenance
-const mockMaintenance: Maintenance[] = [
+const initialMaintenance: Maintenance[] = [
   {
     id: 'M001',
     forkliftId: 'G001',
@@ -60,13 +62,37 @@ const mockMaintenance: Maintenance[] = [
   }
 ];
 
+// Mock data for available forklifts and operators
+const availableForklifts = [
+  { id: 'G001', model: 'Toyota 8FGU25' },
+  { id: 'G004', model: 'Yale GLP050' },
+  { id: 'E002', model: 'Hyster E50XN' },
+  { id: 'R003', model: 'Crown RR5725' },
+  { id: 'E005', model: 'Toyota 8FBMT30' }
+];
+
+const availableOperators = [
+  { id: 'OP001', name: 'Carlos Silva' },
+  { id: 'OP002', name: 'Maria Oliveira' },
+  { id: 'OP003', name: 'João Pereira' },
+  { id: 'OP004', name: 'Ana Costa' },
+  { id: 'SV001', name: 'Pedro Santos' }
+];
+
 const MaintenancePage = () => {
   const isMobile = useIsMobile();
+  const { toast } = useToast();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [maintenanceItems, setMaintenanceItems] = useState<Maintenance[]>(initialMaintenance);
+  
+  // Dialog states
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [selectedMaintenance, setSelectedMaintenance] = useState<Maintenance | null>(null);
   
   // Filter maintenance based on search and filters
-  const filteredMaintenance = mockMaintenance.filter(maintenance => {
+  const filteredMaintenance = maintenanceItems.filter(maintenance => {
     // Search filter
     const matchesSearch = maintenance.forkliftModel.toLowerCase().includes(search.toLowerCase()) || 
                           maintenance.issue.toLowerCase().includes(search.toLowerCase()) ||
@@ -80,8 +106,12 @@ const MaintenancePage = () => {
 
   // Format date
   const formatDate = (dateString: string) => {
-    const dateParts = dateString.split('-');
-    return `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`;
+    try {
+      const dateParts = dateString.split('-');
+      return `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`;
+    } catch (e) {
+      return dateString;
+    }
   };
 
   // Get status classes
@@ -95,6 +125,36 @@ const MaintenancePage = () => {
         return 'bg-status-operational/10 text-status-operational';
       default:
         return 'bg-muted text-muted-foreground';
+    }
+  };
+
+  // Handle add/edit maintenance
+  const handleSaveMaintenance = (maintenanceData: Maintenance) => {
+    if (editDialogOpen) {
+      // Update existing maintenance
+      setMaintenanceItems(prev => 
+        prev.map(m => m.id === maintenanceData.id ? maintenanceData : m)
+      );
+    } else {
+      // Add new maintenance
+      setMaintenanceItems(prev => [...prev, maintenanceData]);
+    }
+  };
+
+  // Handle edit maintenance
+  const handleEditMaintenance = (maintenance: Maintenance) => {
+    setSelectedMaintenance(maintenance);
+    setEditDialogOpen(true);
+  };
+
+  // Handle delete maintenance
+  const handleDeleteMaintenance = (id: string) => {
+    if (confirm("Tem certeza que deseja excluir este registro de manutenção?")) {
+      setMaintenanceItems(prev => prev.filter(m => m.id !== id));
+      toast({
+        title: "Manutenção excluída",
+        description: "O registro de manutenção foi excluído com sucesso."
+      });
     }
   };
 
@@ -131,12 +191,25 @@ const MaintenancePage = () => {
             </div>
             <div className="flex gap-2">
               <div className="relative">
-                <Button variant="outline" className="flex items-center gap-2">
+                <Button 
+                  variant="outline" 
+                  className="flex items-center gap-2"
+                  onClick={() => toast({
+                    title: "Filtros",
+                    description: "Esta funcionalidade permitiria filtros mais avançados."
+                  })}
+                >
                   <Filter className="w-4 h-4" />
                   Filtrar
                 </Button>
               </div>
-              <Button className="gap-2">
+              <Button 
+                className="gap-2"
+                onClick={() => {
+                  setSelectedMaintenance(null);
+                  setAddDialogOpen(true);
+                }}
+              >
                 <Plus className="w-4 h-4" />
                 Nova Manutenção
               </Button>
@@ -207,7 +280,23 @@ const MaintenancePage = () => {
                     
                     <div className="border-t px-4 py-3 bg-muted/30 flex justify-between">
                       <span className="text-sm">ID: {maintenance.id}</span>
-                      <Button variant="ghost" size="sm">Detalhes</Button>
+                      <div className="flex gap-2">
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => handleEditMaintenance(maintenance)}
+                        >
+                          Editar
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                          onClick={() => handleDeleteMaintenance(maintenance.id)}
+                        >
+                          Excluir
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -261,7 +350,23 @@ const MaintenancePage = () => {
                             </span>
                           </td>
                           <td className="p-4">
-                            <Button variant="ghost" size="sm">Detalhes</Button>
+                            <div className="flex gap-2">
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={() => handleEditMaintenance(maintenance)}
+                              >
+                                Editar
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                                onClick={() => handleDeleteMaintenance(maintenance.id)}
+                              >
+                                Excluir
+                              </Button>
+                            </div>
                           </td>
                         </tr>
                       ))}
@@ -278,6 +383,24 @@ const MaintenancePage = () => {
           </div>
         </main>
       </div>
+      
+      {/* Add/Edit Maintenance Dialog */}
+      <MaintenanceDialog 
+        open={addDialogOpen} 
+        onOpenChange={setAddDialogOpen}
+        onSave={handleSaveMaintenance}
+        availableForklifts={availableForklifts}
+        availableOperators={availableOperators}
+      />
+      
+      <MaintenanceDialog 
+        open={editDialogOpen} 
+        onOpenChange={setEditDialogOpen}
+        maintenance={selectedMaintenance || undefined}
+        onSave={handleSaveMaintenance}
+        availableForklifts={availableForklifts}
+        availableOperators={availableOperators}
+      />
     </div>
   );
 };

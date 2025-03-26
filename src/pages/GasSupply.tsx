@@ -8,9 +8,11 @@ import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Calendar, Filter, Fuel, Plus, Search, Truck, User } from 'lucide-react';
 import { GasSupply } from '@/types';
+import GasSupplyDialog from '@/components/gas/GasSupplyDialog';
+import { useToast } from '@/hooks/use-toast';
 
 // Mock data for gas supplies
-const mockGasSupplies: GasSupply[] = [
+const initialGasSupplies: GasSupply[] = [
   {
     id: 'GS001',
     date: '2023-11-20',
@@ -63,14 +65,37 @@ const mockGasSupplies: GasSupply[] = [
   }
 ];
 
+// Mock data for available forklifts and operators
+const availableForklifts = [
+  { id: 'G001', model: 'Toyota 8FGU25' },
+  { id: 'G004', model: 'Yale GLP050' },
+  { id: 'E002', model: 'Hyster E50XN' },
+  { id: 'G006', model: 'Caterpillar DP40' }
+];
+
+const availableOperators = [
+  { id: 'OP001', name: 'Carlos Silva' },
+  { id: 'OP002', name: 'Maria Oliveira' },
+  { id: 'OP003', name: 'João Pereira' },
+  { id: 'OP004', name: 'Ana Costa' },
+  { id: 'SV001', name: 'Pedro Santos' }
+];
+
 const GasSupplyPage = () => {
   const isMobile = useIsMobile();
+  const { toast } = useToast();
   const [search, setSearch] = useState('');
   const [forkliftFilter, setForkliftFilter] = useState<string>('all');
   const [dateFilter, setDateFilter] = useState<string>('');
+  const [gasSupplies, setGasSupplies] = useState<GasSupply[]>(initialGasSupplies);
+
+  // Dialog states
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [selectedGasSupply, setSelectedGasSupply] = useState<GasSupply | null>(null);
   
   // Filter gas supplies based on search and filters
-  const filteredGasSupplies = mockGasSupplies.filter(supply => {
+  const filteredGasSupplies = gasSupplies.filter(supply => {
     // Search filter
     const matchesSearch = supply.forkliftModel.toLowerCase().includes(search.toLowerCase()) || 
                           supply.operator.toLowerCase().includes(search.toLowerCase()) ||
@@ -92,7 +117,7 @@ const GasSupplyPage = () => {
   };
   
   // Get unique forklifts for filter
-  const forklifts = [...new Set(mockGasSupplies.map(supply => supply.forkliftId))];
+  const forklifts = [...new Set(gasSupplies.map(supply => supply.forkliftId))];
 
   // Calculate total consumption and average
   const totalConsumption = filteredGasSupplies.reduce((sum, supply) => sum + supply.quantity, 0);
@@ -104,6 +129,39 @@ const GasSupplyPage = () => {
   const calculateEfficiency = (supply: GasSupply) => {
     const hours = supply.hourMeterAfter - supply.hourMeterBefore;
     return hours > 0 ? supply.quantity / hours : 0;
+  };
+
+  // Handle add/edit gas supply
+  const handleSaveGasSupply = (supplyData: GasSupply) => {
+    if (editDialogOpen) {
+      // Update existing supply
+      setGasSupplies(prev => 
+        prev.map(s => s.id === supplyData.id ? supplyData : s)
+      );
+    } else {
+      // Add new supply
+      setGasSupplies(prev => [...prev, supplyData]);
+    }
+  };
+
+  // Handle delete gas supply
+  const handleDeleteGasSupply = (id: string) => {
+    if (confirm("Tem certeza que deseja excluir este abastecimento?")) {
+      setGasSupplies(prev => prev.filter(s => s.id !== id));
+      toast({
+        title: "Abastecimento excluído",
+        description: "O abastecimento foi excluído com sucesso."
+      });
+    }
+  };
+
+  // Handle filter toggle
+  const handleFilterToggle = () => {
+    // This would normally open a more complex filter dialog
+    toast({
+      title: "Filtros",
+      description: "Esta funcionalidade permitiria filtros mais avançados."
+    });
   };
 
   return (
@@ -167,12 +225,22 @@ const GasSupplyPage = () => {
             </div>
             <div className="flex gap-2">
               <div className="relative">
-                <Button variant="outline" className="flex items-center gap-2">
+                <Button 
+                  variant="outline" 
+                  className="flex items-center gap-2"
+                  onClick={handleFilterToggle}
+                >
                   <Filter className="w-4 h-4" />
                   Filtrar
                 </Button>
               </div>
-              <Button className="gap-2">
+              <Button 
+                className="gap-2"
+                onClick={() => {
+                  setSelectedGasSupply(null);
+                  setAddDialogOpen(true);
+                }}
+              >
                 <Plus className="w-4 h-4" />
                 Novo Abastecimento
               </Button>
@@ -237,7 +305,26 @@ const GasSupplyPage = () => {
                       <td className="p-4">{supply.operator}</td>
                       <td className="p-4">{calculateEfficiency(supply).toFixed(2)}</td>
                       <td className="p-4">
-                        <Button variant="ghost" size="sm">Detalhes</Button>
+                        <div className="flex gap-2">
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => {
+                              setSelectedGasSupply(supply);
+                              setEditDialogOpen(true);
+                            }}
+                          >
+                            Editar
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                            onClick={() => handleDeleteGasSupply(supply.id)}
+                          >
+                            Excluir
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -253,6 +340,24 @@ const GasSupplyPage = () => {
           </div>
         </main>
       </div>
+
+      {/* Add/Edit Gas Supply Dialog */}
+      <GasSupplyDialog 
+        open={addDialogOpen} 
+        onOpenChange={setAddDialogOpen}
+        onSave={handleSaveGasSupply}
+        availableForklifts={availableForklifts}
+        availableOperators={availableOperators}
+      />
+      
+      <GasSupplyDialog 
+        open={editDialogOpen} 
+        onOpenChange={setEditDialogOpen}
+        gasSupply={selectedGasSupply || undefined}
+        onSave={handleSaveGasSupply}
+        availableForklifts={availableForklifts}
+        availableOperators={availableOperators}
+      />
     </div>
   );
 };

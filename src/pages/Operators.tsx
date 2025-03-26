@@ -8,9 +8,12 @@ import { cn } from '@/lib/utils';
 import { CertificateStatus, User, UserRole } from '@/types';
 import { BadgeCheck, Filter, Search, UserPlus } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import OperatorDialog from '@/components/operators/OperatorDialog';
+import OperatorDetails from '@/components/operators/OperatorDetails';
+import { useToast } from '@/hooks/use-toast';
 
 // Mock data for operators
-const mockOperators: User[] = [
+const initialOperators: User[] = [
   {
     id: 'OP001',
     name: 'Carlos Silva',
@@ -80,12 +83,20 @@ const mockOperators: User[] = [
 
 const OperatorsPage = () => {
   const isMobile = useIsMobile();
+  const { toast } = useToast();
   const [search, setSearch] = useState('');
   const [role, setRole] = useState<string>('all');
   const [certStatus, setCertStatus] = useState<string>('all');
+  const [operators, setOperators] = useState<User[]>(initialOperators);
+  
+  // Dialog states
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
+  const [selectedOperator, setSelectedOperator] = useState<User | null>(null);
   
   // Filter operators based on search and filters
-  const filteredOperators = mockOperators.filter(operator => {
+  const filteredOperators = operators.filter(operator => {
     // Search filter
     const matchesSearch = operator.name.toLowerCase().includes(search.toLowerCase()) || 
                           operator.id.toLowerCase().includes(search.toLowerCase());
@@ -124,6 +135,52 @@ const OperatorsPage = () => {
     }
   };
 
+  // Handle add/edit operator
+  const handleSaveOperator = (operatorData: User) => {
+    if (editDialogOpen) {
+      // Update existing operator
+      setOperators(prev => 
+        prev.map(op => op.id === operatorData.id ? operatorData : op)
+      );
+    } else {
+      // Add new operator
+      setOperators(prev => [...prev, operatorData]);
+    }
+  };
+
+  // Handle view operator details
+  const handleViewDetails = (operator: User) => {
+    setSelectedOperator(operator);
+    setDetailsDialogOpen(true);
+  };
+
+  // Handle edit from details view
+  const handleEditFromDetails = () => {
+    setDetailsDialogOpen(false);
+    setEditDialogOpen(true);
+  };
+
+  // Handle delete operator
+  const handleDeleteOperator = (id: string) => {
+    if (confirm("Tem certeza que deseja excluir este operador?")) {
+      setOperators(prev => prev.filter(op => op.id !== id));
+      toast({
+        title: "Operador excluído",
+        description: "O operador foi excluído com sucesso."
+      });
+    }
+  };
+
+  // Handle filter toggle
+  const handleFilterToggle = () => {
+    // This would normally open a more complex filter dialog
+    // For now, we'll just toggle filters being shown
+    toast({
+      title: "Filtros",
+      description: "Esta funcionalidade permitiria filtros mais avançados."
+    });
+  };
+
   return (
     <div className="flex min-h-screen bg-background">
       <Sidebar />
@@ -152,12 +209,22 @@ const OperatorsPage = () => {
             </div>
             <div className="flex gap-2">
               <div className="relative">
-                <Button variant="outline" className="flex items-center gap-2">
+                <Button 
+                  variant="outline" 
+                  className="flex items-center gap-2"
+                  onClick={handleFilterToggle}
+                >
                   <Filter className="w-4 h-4" />
                   Filtrar
                 </Button>
               </div>
-              <Button className="gap-2">
+              <Button 
+                className="gap-2"
+                onClick={() => {
+                  setSelectedOperator(null);
+                  setAddDialogOpen(true);
+                }}
+              >
                 <UserPlus className="w-4 h-4" />
                 Novo Operador
               </Button>
@@ -241,7 +308,23 @@ const OperatorsPage = () => {
                         </div>
                       </td>
                       <td className="p-4">
-                        <Button variant="ghost" size="sm">Detalhes</Button>
+                        <div className="flex gap-2">
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => handleViewDetails(operator)}
+                          >
+                            Detalhes
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                            onClick={() => handleDeleteOperator(operator.id)}
+                          >
+                            Excluir
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -256,6 +339,28 @@ const OperatorsPage = () => {
           </div>
         </main>
       </div>
+      
+      {/* Add/Edit Operator Dialog */}
+      <OperatorDialog 
+        open={addDialogOpen} 
+        onOpenChange={setAddDialogOpen}
+        onSave={handleSaveOperator}
+      />
+      
+      <OperatorDialog 
+        open={editDialogOpen} 
+        onOpenChange={setEditDialogOpen}
+        operator={selectedOperator || undefined}
+        onSave={handleSaveOperator}
+      />
+      
+      {/* Operator Details Dialog */}
+      <OperatorDetails
+        open={detailsDialogOpen}
+        onOpenChange={setDetailsDialogOpen}
+        operator={selectedOperator}
+        onEdit={handleEditFromDetails}
+      />
     </div>
   );
 };

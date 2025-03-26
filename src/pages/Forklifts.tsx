@@ -9,9 +9,12 @@ import { Button } from '@/components/ui/button';
 import { Plus, Filter, Search } from 'lucide-react';
 import ForkliftList from '@/components/forklift/ForkliftList';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
+import ForkliftDialog from '@/components/forklift/ForkliftDialog';
+import ForkliftDetails from '@/components/forklift/ForkliftDetails';
+import { useToast } from '@/hooks/use-toast';
 
 // Mock data for the forklifts
-const mockForklifts: Forklift[] = [
+const initialForklifts: Forklift[] = [
   {
     id: 'G001',
     model: 'Toyota 8FGU25',
@@ -96,11 +99,18 @@ const mockForklifts: Forklift[] = [
 
 const ForkliftsPage = () => {
   const isMobile = useIsMobile();
-  const [forklifts, setForklifts] = useState<Forklift[]>(mockForklifts);
+  const { toast } = useToast();
+  const [forklifts, setForklifts] = useState<Forklift[]>(initialForklifts);
   const [currentDate, setCurrentDate] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<ForkliftStatus | 'all'>('all');
   const [typeFilter, setTypeFilter] = useState<ForkliftType | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
+  
+  // Dialog states
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
+  const [selectedForklift, setSelectedForklift] = useState<Forklift | null>(null);
   
   React.useEffect(() => {
     // Set current date in Brazilian format
@@ -137,19 +147,43 @@ const ForkliftsPage = () => {
     return true;
   });
 
-  // Handle status filter change
-  const handleStatusFilterChange = (status: ForkliftStatus | 'all') => {
-    setStatusFilter(status);
+  // Handle add/edit forklift
+  const handleSaveForklift = (forkliftData: Forklift) => {
+    if (editDialogOpen) {
+      // Update existing forklift
+      setForklifts(prev => 
+        prev.map(f => f.id === forkliftData.id ? forkliftData : f)
+      );
+    } else {
+      // Add new forklift
+      setForklifts(prev => [...prev, forkliftData]);
+    }
   };
 
-  // Handle type filter change
-  const handleTypeFilterChange = (type: ForkliftType | 'all') => {
-    setTypeFilter(type);
+  // Handle forklift click
+  const handleForkliftClick = (id: string) => {
+    const forklift = forklifts.find(f => f.id === id);
+    if (forklift) {
+      setSelectedForklift(forklift);
+      setDetailsDialogOpen(true);
+    }
   };
 
-  // Handle search query change
-  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(event.target.value);
+  // Handle edit from details view
+  const handleEditFromDetails = () => {
+    setDetailsDialogOpen(false);
+    setEditDialogOpen(true);
+  };
+
+  // Handle delete forklift
+  const handleDeleteForklift = (id: string) => {
+    if (confirm("Tem certeza que deseja excluir esta empilhadeira?")) {
+      setForklifts(prev => prev.filter(f => f.id !== id));
+      toast({
+        title: "Empilhadeira excluída",
+        description: "A empilhadeira foi excluída com sucesso."
+      });
+    }
   };
 
   return (
@@ -174,11 +208,24 @@ const ForkliftsPage = () => {
             </div>
             
             <div className="flex gap-2">
-              <Button variant="outline" className="flex gap-2 items-center">
+              <Button 
+                variant="outline" 
+                className="flex gap-2 items-center"
+                onClick={() => toast({
+                  title: "Filtros avançados",
+                  description: "Esta funcionalidade permitiria filtros mais avançados."
+                })}
+              >
                 <Filter size={16} />
                 Filtrar
               </Button>
-              <Button className="flex gap-2 items-center">
+              <Button 
+                className="flex gap-2 items-center"
+                onClick={() => {
+                  setSelectedForklift(null);
+                  setAddDialogOpen(true);
+                }}
+              >
                 <Plus size={16} />
                 Nova Empilhadeira
               </Button>
@@ -196,7 +243,7 @@ const ForkliftsPage = () => {
                   placeholder="Buscar por ID ou modelo..."
                   className="pl-10 h-10 w-full rounded-md border border-input bg-background px-3 py-2"
                   value={searchQuery}
-                  onChange={handleSearchChange}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
               
@@ -205,7 +252,7 @@ const ForkliftsPage = () => {
                 <select 
                   className="h-10 w-full rounded-md border border-input bg-background px-3 py-2"
                   value={statusFilter}
-                  onChange={(e) => handleStatusFilterChange(e.target.value as ForkliftStatus | 'all')}
+                  onChange={(e) => setStatusFilter(e.target.value as ForkliftStatus | 'all')}
                 >
                   <option value="all">Todos os Status</option>
                   <option value={ForkliftStatus.OPERATIONAL}>{ForkliftStatus.OPERATIONAL}</option>
@@ -219,7 +266,7 @@ const ForkliftsPage = () => {
                 <select 
                   className="h-10 w-full rounded-md border border-input bg-background px-3 py-2"
                   value={typeFilter}
-                  onChange={(e) => handleTypeFilterChange(e.target.value as ForkliftType | 'all')}
+                  onChange={(e) => setTypeFilter(e.target.value as ForkliftType | 'all')}
                 >
                   <option value="all">Todos os Tipos</option>
                   <option value={ForkliftType.GAS}>{ForkliftType.GAS}</option>
@@ -234,7 +281,8 @@ const ForkliftsPage = () => {
           <div className="slide-enter">
             <ForkliftList 
               forklifts={filteredForklifts}
-              onForkliftClick={(id) => console.log(`Clicked on forklift ${id}`)}
+              onForkliftClick={handleForkliftClick}
+              onDeleteForklift={handleDeleteForklift}
             />
             
             {/* Pagination */}
@@ -262,6 +310,28 @@ const ForkliftsPage = () => {
           </div>
         </main>
       </div>
+      
+      {/* Add/Edit Forklift Dialog */}
+      <ForkliftDialog 
+        open={addDialogOpen} 
+        onOpenChange={setAddDialogOpen}
+        onSave={handleSaveForklift}
+      />
+      
+      <ForkliftDialog 
+        open={editDialogOpen} 
+        onOpenChange={setEditDialogOpen}
+        forklift={selectedForklift || undefined}
+        onSave={handleSaveForklift}
+      />
+      
+      {/* Forklift Details Dialog */}
+      <ForkliftDetails
+        open={detailsDialogOpen}
+        onOpenChange={setDetailsDialogOpen}
+        forklift={selectedForklift}
+        onEdit={handleEditFromDetails}
+      />
     </div>
   );
 };
