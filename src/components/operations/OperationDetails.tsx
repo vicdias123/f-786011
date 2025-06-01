@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Operation } from '@/types';
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, Gauge, Info, Map, Settings, Truck, User, Wrench } from 'lucide-react';
+import { Calendar, Clock, Gauge, Info, Map, Settings, Scale, User, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface OperationDetailsProps {
@@ -43,7 +43,7 @@ const OperationDetails = ({ open, onOpenChange, operation, onEdit }: OperationDe
     });
   };
 
-  // Calculate operation duration
+  // Calculate activity duration
   const calculateDuration = () => {
     if (!operation.endTime) {
       const startTime = new Date(operation.startTime);
@@ -67,7 +67,7 @@ const OperationDetails = ({ open, onOpenChange, operation, onEdit }: OperationDe
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <span className="text-xl">Operação #{operation.id}</span>
+            <span className="text-xl">Atividade Jurídica #{operation.id}</span>
             <Badge variant={operation.status === 'active' ? 'success' : 'default'}>
               {operation.status === 'active' ? 'Em Andamento' : 'Concluída'}
             </Badge>
@@ -88,15 +88,15 @@ const OperationDetails = ({ open, onOpenChange, operation, onEdit }: OperationDe
               <div className="flex items-center justify-between border-b pb-2">
                 <div className="flex items-center gap-2">
                   <User className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">Operador</span>
+                  <span className="text-sm">Advogado</span>
                 </div>
                 <span className="text-sm font-medium">{operation.operatorName}</span>
               </div>
               
               <div className="flex items-center justify-between border-b pb-2">
                 <div className="flex items-center gap-2">
-                  <Truck className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">Empilhadeira</span>
+                  <Scale className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm">Caso</span>
                 </div>
                 <span className="text-sm font-medium">{operation.forkliftModel} ({operation.forkliftId})</span>
               </div>
@@ -104,7 +104,7 @@ const OperationDetails = ({ open, onOpenChange, operation, onEdit }: OperationDe
               <div className="flex items-center justify-between border-b pb-2">
                 <div className="flex items-center gap-2">
                   <Map className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">Setor</span>
+                  <span className="text-sm">Área Jurídica</span>
                 </div>
                 <span className="text-sm font-medium">{operation.sector}</span>
               </div>
@@ -141,31 +141,31 @@ const OperationDetails = ({ open, onOpenChange, operation, onEdit }: OperationDe
         <div className="mt-4 space-y-4">
           <div className="flex items-center gap-2">
             <Gauge className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm font-medium">Horímetro</span>
+            <span className="text-sm font-medium">Controle de Horas</span>
           </div>
           
           <div className="grid grid-cols-2 gap-4 p-3 bg-muted/20 rounded-md">
             <div>
-              <span className="text-sm text-muted-foreground">Inicial</span>
-              <div className="text-lg font-medium">{operation.initialHourMeter}</div>
+              <span className="text-sm text-muted-foreground">Horas Iniciais</span>
+              <div className="text-lg font-medium">{operation.initialHourMeter}h</div>
             </div>
             <div>
-              <span className="text-sm text-muted-foreground">Atual/Final</span>
-              <div className="text-lg font-medium">{operation.currentHourMeter || operation.initialHourMeter}</div>
+              <span className="text-sm text-muted-foreground">Horas Atuais/Finais</span>
+              <div className="text-lg font-medium">{operation.currentHourMeter || operation.initialHourMeter}h</div>
             </div>
           </div>
           
           {operation.gasConsumption && (
             <div className="mt-4">
               <div className="flex items-center gap-2 mb-3">
-                <Wrench className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-medium">Consumo de Combustível</span>
+                <FileText className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-medium">Horas Faturáveis</span>
               </div>
               
               <div className="p-3 bg-muted/20 rounded-md">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm">Consumo Total</span>
-                  <span className="text-sm font-medium">{operation.gasConsumption} L</span>
+                  <span className="text-sm">Total de Horas Faturáveis</span>
+                  <span className="text-sm font-medium">{operation.gasConsumption}h</span>
                 </div>
               </div>
             </div>
@@ -177,7 +177,7 @@ const OperationDetails = ({ open, onOpenChange, operation, onEdit }: OperationDe
             Fechar
           </Button>
           <Button onClick={onEdit}>
-            Editar Operação
+            Editar Atividade
           </Button>
         </DialogFooter>
       </DialogContent>

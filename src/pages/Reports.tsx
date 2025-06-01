@@ -22,16 +22,16 @@ const ReportsPage: React.FC = () => {
       
       <div className={cn(
         "flex-1 flex flex-col",
-        !isMobile && "ml-64" // Offset for sidebar when not mobile
+        !isMobile && "ml-64"
       )}>
         <Navbar 
-          title="Relatórios" 
-          subtitle="Visualização e exportação de dados"
+          title="Relatórios Jurídicos" 
+          subtitle="Análise e exportação de dados do escritório"
         />
         
         <main className="flex-1 px-6 py-6">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-            <h1 className="text-2xl font-bold">Relatórios do Sistema</h1>
+            <h1 className="text-2xl font-bold">Relatórios do Escritório</h1>
             
             <div className="flex gap-2">
               <Button variant="outline" className="gap-2">
@@ -74,27 +74,27 @@ const ReportsPage: React.FC = () => {
                     </div>
                     <CollapsibleContent className="space-y-2">
                       <div className="flex items-center space-x-2">
-                        <Checkbox id="operations" />
-                        <label htmlFor="operations" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                          Operações
+                        <Checkbox id="cases" />
+                        <label htmlFor="cases" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                          Casos Jurídicos
                         </label>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <Checkbox id="maintenance" />
-                        <label htmlFor="maintenance" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                          Manutenções
+                        <Checkbox id="documents" />
+                        <label htmlFor="documents" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                          Documentos
                         </label>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <Checkbox id="gas" />
-                        <label htmlFor="gas" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                          Abastecimento
+                        <Checkbox id="billing" />
+                        <label htmlFor="billing" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                          Faturamento
                         </label>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <Checkbox id="operator" />
-                        <label htmlFor="operator" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                          Operadores
+                        <Checkbox id="lawyers" />
+                        <label htmlFor="lawyers" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                          Advogados
                         </label>
                       </div>
                     </CollapsibleContent>
@@ -110,15 +110,14 @@ const ReportsPage: React.FC = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {/* Report Cards */}
                     <Card className="hover:bg-muted/50 cursor-pointer transition-colors">
                       <CardContent className="p-4 flex gap-4 items-center">
                         <div className="p-2 bg-primary/10 text-primary rounded-md">
                           <FileBarChart className="w-6 h-6" />
                         </div>
                         <div>
-                          <h3 className="font-medium">Utilização de Empilhadeiras</h3>
-                          <p className="text-sm text-muted-foreground">Análise de horas de uso por máquina</p>
+                          <h3 className="font-medium">Produtividade dos Advogados</h3>
+                          <p className="text-sm text-muted-foreground">Análise de horas faturáveis por advogado</p>
                         </div>
                       </CardContent>
                     </Card>
@@ -129,8 +128,8 @@ const ReportsPage: React.FC = () => {
                           <FileBarChart className="w-6 h-6" />
                         </div>
                         <div>
-                          <h3 className="font-medium">Consumo de Combustível</h3>
-                          <p className="text-sm text-muted-foreground">Consumo de gás por empilhadeira e horímetro</p>
+                          <h3 className="font-medium">Faturamento por Área</h3>
+                          <p className="text-sm text-muted-foreground">Receita gerada por especialização jurídica</p>
                         </div>
                       </CardContent>
                     </Card>
@@ -141,8 +140,8 @@ const ReportsPage: React.FC = () => {
                           <FileBarChart className="w-6 h-6" />
                         </div>
                         <div>
-                          <h3 className="font-medium">Histórico de Manutenções</h3>
-                          <p className="text-sm text-muted-foreground">Registros de manutenções realizadas</p>
+                          <h3 className="font-medium">Status dos Casos</h3>
+                          <p className="text-sm text-muted-foreground">Acompanhamento de processos em andamento</p>
                         </div>
                       </CardContent>
                     </Card>
@@ -153,8 +152,8 @@ const ReportsPage: React.FC = () => {
                           <FileBarChart className="w-6 h-6" />
                         </div>
                         <div>
-                          <h3 className="font-medium">Status dos Operadores</h3>
-                          <p className="text-sm text-muted-foreground">Validade de ASO e certificações</p>
+                          <h3 className="font-medium">Certificações da OAB</h3>
+                          <p className="text-sm text-muted-foreground">Validade de registros e especializações</p>
                         </div>
                       </CardContent>
                     </Card>

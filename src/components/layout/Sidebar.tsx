@@ -3,8 +3,8 @@ import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { 
-  Truck, Users, ClipboardList, Fuel, 
-  Settings, FileText, LayoutDashboard, Menu, X
+  Scale, Users, ClipboardList, FileText, 
+  Settings, BarChart3, LayoutDashboard, Menu, X, Calculator
 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -46,12 +46,12 @@ const Sidebar: React.FC = () => {
   
   const links = [
     { to: "/", icon: LayoutDashboard, label: "Dashboard" },
-    { to: "/forklifts", icon: Truck, label: "Empilhadeiras" },
-    { to: "/operators", icon: Users, label: "Operadores" },
-    { to: "/operations", icon: ClipboardList, label: "Operações" },
-    { to: "/maintenance", icon: Settings, label: "Manutenção" },
-    { to: "/gas-supply", icon: Fuel, label: "Abastecimento" },
-    { to: "/reports", icon: FileText, label: "Relatórios" },
+    { to: "/forklifts", icon: Scale, label: "Casos Jurídicos" },
+    { to: "/operators", icon: Users, label: "Advogados" },
+    { to: "/operations", icon: ClipboardList, label: "Atividades" },
+    { to: "/maintenance", icon: Settings, label: "Documentos" },
+    { to: "/gas-supply", icon: Calculator, label: "Faturamento" },
+    { to: "/reports", icon: BarChart3, label: "Relatórios" },
   ];
 
   return (
@@ -85,7 +85,7 @@ const Sidebar: React.FC = () => {
         <div className="flex flex-col h-full">
           {/* Sidebar Header */}
           <div className="flex items-center justify-between px-4 py-5">
-            <h1 className="text-xl font-bold text-sidebar-foreground">Forklift Manager</h1>
+            <h1 className="text-xl font-bold text-sidebar-foreground">Legal Manager</h1>
             {isMobile && (
               <button
                 onClick={closeSidebar}
@@ -114,10 +114,10 @@ const Sidebar: React.FC = () => {
           <div className="p-4 border-t border-sidebar-border">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-full bg-sidebar-accent flex items-center justify-center">
-                <Users className="w-4 h-4 text-sidebar-accent-foreground" />
+                <Scale className="w-4 h-4 text-sidebar-accent-foreground" />
               </div>
               <div>
-                <p className="text-sm font-medium text-sidebar-foreground">Administrador</p>
+                <p className="text-sm font-medium text-sidebar-foreground">Escritório Legal</p>
                 <p className="text-xs text-sidebar-foreground/70">v1.0.0</p>
               </div>
             </div>

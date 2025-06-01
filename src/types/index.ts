@@ -1,33 +1,39 @@
 
-// Forklift Types
-export enum ForkliftType {
-  GAS = "Gás",
-  ELECTRIC = "Elétrica",
-  RETRACTABLE = "Retrátil"
+// Legal Case Types
+export enum CaseType {
+  CIVIL = "Cível",
+  CRIMINAL = "Criminal",
+  LABOR = "Trabalhista",
+  FAMILY = "Família",
+  CORPORATE = "Empresarial"
 }
 
-export enum ForkliftStatus {
-  OPERATIONAL = "Em Operação",
-  STOPPED = "Parada",
-  MAINTENANCE = "Aguardando Manutenção"
+export enum CaseStatus {
+  ACTIVE = "Em Andamento",
+  SUSPENDED = "Suspenso",
+  CLOSED = "Encerrado",
+  APPEALING = "Em Recurso"
 }
 
-export interface Forklift {
+export interface LegalCase {
   id: string;
-  model: string;
-  type: ForkliftType;
-  capacity: string;
-  acquisitionDate: string;
-  lastMaintenance: string;
-  status: ForkliftStatus;
-  hourMeter: number;
+  caseNumber: string;
+  type: CaseType;
+  clientName: string;
+  description: string;
+  openingDate: string;
+  lastUpdate: string;
+  status: CaseStatus;
+  estimatedValue: number;
+  responsibleLawyer: string;
 }
 
-// User/Operator Types
-export enum UserRole {
-  OPERATOR = "Operador",
-  SUPERVISOR = "Supervisor",
-  ADMIN = "Administrador"
+// Lawyer Types
+export enum LawyerRole {
+  JUNIOR = "Advogado Júnior",
+  SENIOR = "Advogado Sênior",
+  PARTNER = "Sócio",
+  PARALEGAL = "Paralegal"
 }
 
 export enum CertificateStatus {
@@ -36,78 +42,79 @@ export enum CertificateStatus {
   EXPIRED = "Vencido"
 }
 
-export interface User {
+export interface Lawyer {
   id: string;
   name: string;
-  role: UserRole;
-  cpf: string;
+  role: LawyerRole;
+  oab: string;
   contact: string;
-  shift: string;
+  specialization: string;
   registrationDate: string;
-  asoExpirationDate: string;
-  nrExpirationDate: string;
-  asoStatus: CertificateStatus;
-  nrStatus: CertificateStatus;
+  oabExpirationDate: string;
+  cppExpirationDate: string;
+  oabStatus: CertificateStatus;
+  cppStatus: CertificateStatus;
 }
 
-// Operation Types
-export interface Operation {
+// Legal Activity Types
+export interface LegalActivity {
   id: string;
-  operatorId: string;
-  operatorName: string;
-  forkliftId: string;
-  forkliftModel: string;
-  sector: string;
-  initialHourMeter: number;
-  currentHourMeter?: number;
-  gasConsumption?: number;
+  lawyerId: string;
+  lawyerName: string;
+  caseId: string;
+  caseNumber: string;
+  activityType: string;
+  description: string;
+  initialTime: number;
+  currentTime?: number;
+  billableHours?: number;
   startTime: string;
   endTime?: string;
   status: "active" | "completed";
 }
 
-// Maintenance Types
-export enum MaintenanceStatus {
-  WAITING = "Aguardando",
-  IN_PROGRESS = "Em andamento",
+// Document Management Types
+export enum DocumentStatus {
+  PENDING = "Pendente",
+  IN_REVIEW = "Em Revisão",
   COMPLETED = "Concluído"
 }
 
-export interface Maintenance {
+export interface Document {
   id: string;
-  forkliftId: string;
-  forkliftModel: string;
-  issue: string;
-  reportedBy: string;
-  reportedDate: string;
-  status: MaintenanceStatus;
-  completedDate?: string;
+  caseId: string;
+  caseNumber: string;
+  documentType: string;
+  createdBy: string;
+  creationDate: string;
+  status: DocumentStatus;
+  deadline?: string;
 }
 
-// Gas Supply Types
-export interface GasSupply {
+// Billing Types
+export interface Billing {
   id: string;
   date: string;
-  forkliftId: string;
-  forkliftModel: string;
-  quantity: number;
-  hourMeterBefore: number;
-  hourMeterAfter: number;
-  operator: string;
+  caseId: string;
+  caseNumber: string;
+  hours: number;
+  hourlyRate: number;
+  totalAmount: number;
+  lawyer: string;
 }
 
 // Dashboard Types
 export interface DashboardStats {
-  totalForklifts: number;
-  operationalForklifts: number;
-  stoppedForklifts: number;
-  maintenanceForklifts: number;
-  totalOperators: number;
-  operatorsWithValidCertificates: number;
-  operatorsWithWarningCertificates: number;
-  operatorsWithExpiredCertificates: number;
-  activeOperations: number;
-  pendingMaintenances: number;
+  totalCases: number;
+  activeCases: number;
+  suspendedCases: number;
+  closedCases: number;
+  totalLawyers: number;
+  lawyersWithValidCertificates: number;
+  lawyersWithWarningCertificates: number;
+  lawyersWithExpiredCertificates: number;
+  activeActivities: number;
+  pendingDocuments: number;
 }
 
 // Common Component Props
@@ -120,4 +127,35 @@ export interface StatusCardProps {
     value: number;
     trend: "up" | "down" | "neutral";
   };
+}
+
+// Legacy types for compatibility
+export type Operation = LegalActivity;
+export type User = Lawyer;
+export type Forklift = LegalCase;
+export type Maintenance = Document;
+export type GasSupply = Billing;
+
+export enum ForkliftType {
+  GAS = "Gás",
+  ELECTRIC = "Elétrica", 
+  RETRACTABLE = "Retrátil"
+}
+
+export enum ForkliftStatus {
+  OPERATIONAL = "Em Operação",
+  STOPPED = "Parada",
+  MAINTENANCE = "Aguardando Manutenção"
+}
+
+export enum UserRole {
+  OPERATOR = "Operador",
+  SUPERVISOR = "Supervisor", 
+  ADMIN = "Administrador"
+}
+
+export enum MaintenanceStatus {
+  WAITING = "Aguardando",
+  IN_PROGRESS = "Em andamento",
+  COMPLETED = "Concluído"
 }
