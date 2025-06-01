@@ -9,15 +9,15 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Forklift, ForkliftStatus } from '@/types';
+import { LegalCase, CaseStatus } from '@/types';
 import { Badge } from "@/components/ui/badge";
-import { BarChart3, Calendar, Gauge, Info, Settings, Wrench, Truck } from 'lucide-react';
+import { BarChart3, Calendar, Info, FileText, Scale, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface ForkliftDetailsProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  forklift: Forklift | null;
+  forklift: LegalCase | null;
   onEdit: () => void;
 }
 
@@ -25,17 +25,27 @@ const ForkliftDetails = ({ open, onOpenChange, forklift, onEdit }: ForkliftDetai
   if (!forklift) return null;
 
   // Get status color classes
-  const getStatusClass = (status: ForkliftStatus) => {
+  const getStatusClass = (status: CaseStatus) => {
     switch (status) {
-      case ForkliftStatus.OPERATIONAL:
+      case CaseStatus.ACTIVE:
         return 'bg-green-100 text-green-800 border-green-200';
-      case ForkliftStatus.MAINTENANCE:
+      case CaseStatus.SUSPENDED:
         return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case ForkliftStatus.STOPPED:
+      case CaseStatus.CLOSED:
         return 'bg-red-100 text-red-800 border-red-200';
+      case CaseStatus.APPEALING:
+        return 'bg-blue-100 text-blue-800 border-blue-200';
       default:
         return 'bg-gray-100 text-gray-800 border-gray-200';
     }
+  };
+
+  // Format currency
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(value);
   };
 
   return (
@@ -43,13 +53,13 @@ const ForkliftDetails = ({ open, onOpenChange, forklift, onEdit }: ForkliftDetai
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <span className="text-xl">{forklift.model}</span>
+            <span className="text-xl">{forklift.caseNumber}</span>
             <Badge variant="outline" className={cn(getStatusClass(forklift.status))}>
               {forklift.status}
             </Badge>
           </DialogTitle>
           <DialogDescription>
-            ID: {forklift.id}
+            Cliente: {forklift.clientName}
           </DialogDescription>
         </DialogHeader>
         
@@ -63,7 +73,7 @@ const ForkliftDetails = ({ open, onOpenChange, forklift, onEdit }: ForkliftDetai
             <div className="space-y-3">
               <div className="flex items-center justify-between border-b pb-2">
                 <div className="flex items-center gap-2">
-                  <Truck className="h-4 w-4 text-muted-foreground" />
+                  <Scale className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm">Tipo</span>
                 </div>
                 <span className="text-sm font-medium">{forklift.type}</span>
@@ -71,18 +81,18 @@ const ForkliftDetails = ({ open, onOpenChange, forklift, onEdit }: ForkliftDetai
               
               <div className="flex items-center justify-between border-b pb-2">
                 <div className="flex items-center gap-2">
-                  <Settings className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">Capacidade</span>
+                  <FileText className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm">Valor Estimado</span>
                 </div>
-                <span className="text-sm font-medium">{forklift.capacity}</span>
+                <span className="text-sm font-medium">{formatCurrency(forklift.estimatedValue)}</span>
               </div>
               
               <div className="flex items-center justify-between border-b pb-2">
                 <div className="flex items-center gap-2">
-                  <Gauge className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">Horímetro</span>
+                  <User className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm">Advogado Responsável</span>
                 </div>
-                <span className="text-sm font-medium">{forklift.hourMeter} horas</span>
+                <span className="text-sm font-medium">{forklift.responsibleLawyer}</span>
               </div>
             </div>
           </div>
@@ -95,29 +105,25 @@ const ForkliftDetails = ({ open, onOpenChange, forklift, onEdit }: ForkliftDetai
             
             <div className="space-y-3">
               <div className="flex items-center justify-between border-b pb-2">
-                <span className="text-sm">Data de Aquisição</span>
-                <span className="text-sm font-medium">{forklift.acquisitionDate}</span>
+                <span className="text-sm">Data de Abertura</span>
+                <span className="text-sm font-medium">{forklift.openingDate}</span>
               </div>
               
               <div className="flex items-center justify-between border-b pb-2">
-                <span className="text-sm">Última Manutenção</span>
-                <span className="text-sm font-medium">{forklift.lastMaintenance}</span>
+                <span className="text-sm">Última Atualização</span>
+                <span className="text-sm font-medium">{forklift.lastUpdate}</span>
               </div>
             </div>
             
             <div className="mt-8">
               <div className="flex items-center gap-2 mb-3">
-                <Wrench className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-medium">Manutenção</span>
+                <FileText className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-medium">Descrição</span>
               </div>
               
               <div className="p-3 bg-muted/20 rounded-md">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm">Próxima Manutenção Preventiva</span>
-                  <span className="text-sm font-medium text-yellow-600">Em 8 dias</span>
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  Baseado no horímetro atual e ciclo de manutenção
+                <div className="text-sm text-muted-foreground">
+                  {forklift.description}
                 </div>
               </div>
             </div>
@@ -127,11 +133,11 @@ const ForkliftDetails = ({ open, onOpenChange, forklift, onEdit }: ForkliftDetai
         <div className="mt-4 border-t pt-4">
           <div className="flex items-center gap-2 mb-3">
             <BarChart3 className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm font-medium">Utilização Recente</span>
+            <span className="text-sm font-medium">Atividade Recente</span>
           </div>
           
           <div className="h-20 bg-muted/20 rounded-md flex items-center justify-center">
-            <span className="text-sm text-muted-foreground">Dados de utilização seriam exibidos aqui</span>
+            <span className="text-sm text-muted-foreground">Dados de atividade seriam exibidos aqui</span>
           </div>
         </div>
         
@@ -140,7 +146,7 @@ const ForkliftDetails = ({ open, onOpenChange, forklift, onEdit }: ForkliftDetai
             Fechar
           </Button>
           <Button onClick={onEdit}>
-            Editar Empilhadeira
+            Editar Caso
           </Button>
         </DialogFooter>
       </DialogContent>

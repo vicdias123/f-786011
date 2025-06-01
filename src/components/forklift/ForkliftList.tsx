@@ -1,11 +1,11 @@
 
 import React from 'react';
 import { cn } from '@/lib/utils';
-import { Forklift, ForkliftStatus } from '@/types';
+import { LegalCase, CaseStatus } from '@/types';
 import { Trash2 } from 'lucide-react';
 
 interface ForkliftListProps {
-  forklifts: Forklift[];
+  forklifts: LegalCase[];
   onForkliftClick: (id: string) => void;
   onDeleteForklift?: (id: string) => void;
 }
@@ -16,14 +16,16 @@ const ForkliftList: React.FC<ForkliftListProps> = ({
   onDeleteForklift 
 }) => {
   // Get status color classes
-  const getStatusColor = (status: ForkliftStatus) => {
+  const getStatusColor = (status: CaseStatus) => {
     switch (status) {
-      case ForkliftStatus.OPERATIONAL:
+      case CaseStatus.ACTIVE:
         return 'bg-status-operational text-status-operational';
-      case ForkliftStatus.MAINTENANCE:
+      case CaseStatus.SUSPENDED:
         return 'bg-status-maintenance text-status-maintenance';
-      case ForkliftStatus.STOPPED:
+      case CaseStatus.CLOSED:
         return 'bg-status-warning text-status-warning';
+      case CaseStatus.APPEALING:
+        return 'bg-blue-100 text-blue-800';
       default:
         return 'bg-muted text-muted-foreground';
     }
@@ -32,12 +34,16 @@ const ForkliftList: React.FC<ForkliftListProps> = ({
   // Get type color classes
   const getTypeColor = (type: string) => {
     switch (type) {
-      case 'Gás':
+      case 'Cível':
         return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'Elétrica':
+      case 'Criminal':
+        return 'bg-red-100 text-red-800 border-red-200';
+      case 'Trabalhista':
         return 'bg-green-100 text-green-800 border-green-200';
-      case 'Retrátil':
+      case 'Família':
         return 'bg-purple-100 text-purple-800 border-purple-200';
+      case 'Empresarial':
+        return 'bg-orange-100 text-orange-800 border-orange-200';
       default:
         return 'bg-gray-100 text-gray-800 border-gray-200';
     }
@@ -51,18 +57,26 @@ const ForkliftList: React.FC<ForkliftListProps> = ({
     }
   };
 
+  // Format currency
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(value);
+  };
+
   return (
     <div className="bg-card rounded-lg border shadow-sm">
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
             <tr className="bg-muted/50">
-              <th className="py-3 px-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">ID</th>
-              <th className="py-3 px-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Modelo</th>
+              <th className="py-3 px-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Número</th>
+              <th className="py-3 px-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Cliente</th>
               <th className="py-3 px-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Tipo</th>
-              <th className="py-3 px-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Capacidade</th>
-              <th className="py-3 px-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Horímetro</th>
-              <th className="py-3 px-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Última Manutenção</th>
+              <th className="py-3 px-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Valor Estimado</th>
+              <th className="py-3 px-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Data Abertura</th>
+              <th className="py-3 px-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Advogado</th>
               <th className="py-3 px-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Status</th>
               <th className="py-3 px-4 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">Ações</th>
             </tr>
@@ -74,9 +88,9 @@ const ForkliftList: React.FC<ForkliftListProps> = ({
                 className="hover:bg-muted/50 cursor-pointer"
                 onClick={() => onForkliftClick(forklift.id)}
               >
-                <td className="py-4 px-4 text-sm">{forklift.id}</td>
+                <td className="py-4 px-4 text-sm">{forklift.caseNumber}</td>
                 <td className="py-4 px-4">
-                  <div className="text-sm font-medium">{forklift.model}</div>
+                  <div className="text-sm font-medium">{forklift.clientName}</div>
                 </td>
                 <td className="py-4 px-4">
                   <span className={cn(
@@ -86,9 +100,9 @@ const ForkliftList: React.FC<ForkliftListProps> = ({
                     {forklift.type}
                   </span>
                 </td>
-                <td className="py-4 px-4 text-sm">{forklift.capacity}</td>
-                <td className="py-4 px-4 text-sm">{forklift.hourMeter}</td>
-                <td className="py-4 px-4 text-sm">{forklift.lastMaintenance}</td>
+                <td className="py-4 px-4 text-sm">{formatCurrency(forklift.estimatedValue)}</td>
+                <td className="py-4 px-4 text-sm">{forklift.openingDate}</td>
+                <td className="py-4 px-4 text-sm">{forklift.responsibleLawyer}</td>
                 <td className="py-4 px-4">
                   <div className="flex items-center">
                     <div className={cn(
@@ -116,7 +130,7 @@ const ForkliftList: React.FC<ForkliftListProps> = ({
       
       {forklifts.length === 0 && (
         <div className="text-center p-8 text-muted-foreground">
-          Nenhuma empilhadeira encontrada
+          Nenhum caso jurídico encontrado
         </div>
       )}
     </div>

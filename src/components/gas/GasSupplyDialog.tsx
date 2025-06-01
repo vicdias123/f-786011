@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { GasSupply } from '@/types';
+import { Billing } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -24,9 +24,9 @@ import { CalendarIcon } from 'lucide-react';
 interface GasSupplyDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  gasSupply?: GasSupply;
-  onSave: (gasSupply: GasSupply) => void;
-  availableForklifts: { id: string; model: string }[];
+  gasSupply?: Billing;
+  onSave: (gasSupply: Billing) => void;
+  availableForklifts: { id: string; caseNumber: string }[];
   availableOperators: { id: string; name: string }[];
 }
 
@@ -41,43 +41,49 @@ const GasSupplyDialog = ({
   const { toast } = useToast();
   const isEditing = !!gasSupply;
   
-  const [formData, setFormData] = useState<Partial<GasSupply>>(
+  const [formData, setFormData] = useState<Partial<Billing>>(
     gasSupply || {
-      id: `GS${Math.floor(Math.random() * 10000).toString().padStart(3, '0')}`,
-      date: format(new Date(), 'yyyy-MM-dd'),
-      forkliftId: '',
-      forkliftModel: '',
-      quantity: 0,
-      hourMeterBefore: 0,
-      hourMeterAfter: 0,
-      operator: ''
+      id: `FAT${Math.floor(Math.random() * 10000).toString().padStart(3, '0')}`,
+      date: format(new Date(), 'dd/MM/yyyy'),
+      caseId: '',
+      caseNumber: '',
+      hours: 0,
+      hourlyRate: 300,
+      totalAmount: 0,
+      lawyer: ''
     }
   );
 
-  // Handle forklift selection
-  const handleForkliftChange = (forkliftId: string) => {
-    const selectedForklift = availableForklifts.find(f => f.id === forkliftId);
+  // Calculate total amount when hours or rate changes
+  useEffect(() => {
+    const total = (formData.hours || 0) * (formData.hourlyRate || 0);
+    setFormData(prev => ({ ...prev, totalAmount: total }));
+  }, [formData.hours, formData.hourlyRate]);
+
+  // Handle case selection
+  const handleCaseChange = (caseId: string) => {
+    const selectedCase = availableForklifts.find(f => f.id === caseId);
     setFormData(prev => ({ 
       ...prev, 
-      forkliftId,
-      forkliftModel: selectedForklift?.model || ''
+      caseId,
+      caseNumber: selectedCase?.caseNumber || ''
     }));
   };
 
-  // Handle operator selection
-  const handleOperatorChange = (operatorName: string) => {
-    setFormData(prev => ({ ...prev, operator: operatorName }));
+  // Handle lawyer selection
+  const handleLawyerChange = (lawyerName: string) => {
+    setFormData(prev => ({ ...prev, lawyer: lawyerName }));
   };
 
   // Handle form field changes
-  const handleChange = (field: keyof GasSupply, value: any) => {
+  const handleChange = (field: keyof Billing, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   // Format date for display
   const formatDateForDisplay = (dateString: string) => {
     try {
-      const [year, month, day] = dateString.split('-');
+      const [day, month, year] = dateString.split('/');
       return `${day}/${month}/${year}`;
     } catch (e) {
       return dateString;
@@ -87,7 +93,7 @@ const GasSupplyDialog = ({
   // Parse date string to Date object
   const parseDate = (dateStr: string): Date => {
     try {
-      const [year, month, day] = dateStr.split('-').map(Number);
+      const [day, month, year] = dateStr.split('/').map(Number);
       return new Date(year, month - 1, day);
     } catch (e) {
       return new Date();
@@ -99,7 +105,7 @@ const GasSupplyDialog = ({
     e.preventDefault();
     
     // Validate form
-    if (!formData.forkliftId || !formData.quantity || !formData.hourMeterBefore || !formData.hourMeterAfter || !formData.operator) {
+    if (!formData.caseId || !formData.hours || !formData.hourlyRate || !formData.lawyer) {
       toast({
         title: "Erro ao salvar",
         description: "Preencha todos os campos obrigatórios",
@@ -108,37 +114,37 @@ const GasSupplyDialog = ({
       return;
     }
     
-    if (formData.hourMeterAfter <= formData.hourMeterBefore) {
+    if (formData.hours <= 0) {
       toast({
         title: "Erro de validação",
-        description: "O horímetro final deve ser maior que o inicial",
+        description: "O número de horas deve ser maior que zero",
         variant: "destructive"
       });
       return;
     }
     
-    // Save gas supply
-    onSave(formData as GasSupply);
+    // Save billing
+    onSave(formData as Billing);
     
     // Reset form and close dialog
     if (!isEditing) {
       setFormData({
-        id: `GS${Math.floor(Math.random() * 10000).toString().padStart(3, '0')}`,
-        date: format(new Date(), 'yyyy-MM-dd'),
-        forkliftId: '',
-        forkliftModel: '',
-        quantity: 0,
-        hourMeterBefore: 0,
-        hourMeterAfter: 0,
-        operator: ''
+        id: `FAT${Math.floor(Math.random() * 10000).toString().padStart(3, '0')}`,
+        date: format(new Date(), 'dd/MM/yyyy'),
+        caseId: '',
+        caseNumber: '',
+        hours: 0,
+        hourlyRate: 300,
+        totalAmount: 0,
+        lawyer: ''
       });
     }
     
     onOpenChange(false);
     
     toast({
-      title: isEditing ? "Abastecimento atualizado" : "Abastecimento registrado",
-      description: `Abastecimento ${isEditing ? 'atualizado' : 'registrado'} com sucesso!`
+      title: isEditing ? "Faturamento atualizado" : "Faturamento registrado",
+      description: `Faturamento ${isEditing ? 'atualizado' : 'registrado'} com sucesso!`
     });
   };
 
@@ -146,11 +152,11 @@ const GasSupplyDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>{isEditing ? 'Editar Abastecimento' : 'Novo Abastecimento'}</DialogTitle>
+          <DialogTitle>{isEditing ? 'Editar Faturamento' : 'Novo Faturamento'}</DialogTitle>
           <DialogDescription>
             {isEditing 
-              ? 'Edite as informações do abastecimento nos campos abaixo.' 
-              : 'Preencha as informações do novo abastecimento nos campos abaixo.'}
+              ? 'Edite as informações do faturamento nos campos abaixo.' 
+              : 'Preencha as informações do novo faturamento nos campos abaixo.'}
           </DialogDescription>
         </DialogHeader>
         
@@ -172,7 +178,7 @@ const GasSupplyDialog = ({
                   <Calendar
                     mode="single"
                     selected={parseDate(formData.date || '')}
-                    onSelect={(date) => handleChange('date', format(date || new Date(), 'yyyy-MM-dd'))}
+                    onSelect={(date) => handleChange('date', format(date || new Date(), 'dd/MM/yyyy'))}
                     locale={ptBR}
                     className={cn("p-3 pointer-events-auto")}
                   />
@@ -181,18 +187,18 @@ const GasSupplyDialog = ({
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="forkliftId">Empilhadeira</Label>
+              <Label htmlFor="caseId">Caso Jurídico</Label>
               <Select 
-                value={formData.forkliftId} 
-                onValueChange={handleForkliftChange}
+                value={formData.caseId} 
+                onValueChange={handleCaseChange}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecione a empilhadeira" />
+                  <SelectValue placeholder="Selecione o caso" />
                 </SelectTrigger>
                 <SelectContent>
                   {availableForklifts.map(forklift => (
                     <SelectItem key={forklift.id} value={forklift.id}>
-                      {forklift.model} ({forklift.id})
+                      {forklift.caseNumber}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -200,26 +206,26 @@ const GasSupplyDialog = ({
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="quantity">Quantidade (L)</Label>
+              <Label htmlFor="hours">Horas Trabalhadas</Label>
               <Input 
-                id="quantity" 
+                id="hours" 
                 type="number"
-                step="0.1"
+                step="0.5"
                 min="0"
-                value={formData.quantity} 
-                onChange={(e) => handleChange('quantity', parseFloat(e.target.value))}
+                value={formData.hours} 
+                onChange={(e) => handleChange('hours', parseFloat(e.target.value) || 0)}
                 placeholder="0.0"
               />
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="operator">Operador</Label>
+              <Label htmlFor="lawyer">Advogado</Label>
               <Select 
-                value={formData.operator} 
-                onValueChange={handleOperatorChange}
+                value={formData.lawyer} 
+                onValueChange={handleLawyerChange}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecione o operador" />
+                  <SelectValue placeholder="Selecione o advogado" />
                 </SelectTrigger>
                 <SelectContent>
                   {availableOperators.map(operator => (
@@ -232,24 +238,25 @@ const GasSupplyDialog = ({
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="hourMeterBefore">Horímetro Inicial</Label>
+              <Label htmlFor="hourlyRate">Valor por Hora (R$)</Label>
               <Input 
-                id="hourMeterBefore" 
+                id="hourlyRate" 
                 type="number"
                 min="0"
-                value={formData.hourMeterBefore} 
-                onChange={(e) => handleChange('hourMeterBefore', parseInt(e.target.value))}
+                step="0.01"
+                value={formData.hourlyRate} 
+                onChange={(e) => handleChange('hourlyRate', parseFloat(e.target.value) || 0)}
               />
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="hourMeterAfter">Horímetro Final</Label>
+              <Label htmlFor="totalAmount">Valor Total (R$)</Label>
               <Input 
-                id="hourMeterAfter" 
+                id="totalAmount" 
                 type="number"
-                min="0"
-                value={formData.hourMeterAfter} 
-                onChange={(e) => handleChange('hourMeterAfter', parseInt(e.target.value))}
+                value={formData.totalAmount?.toFixed(2) || '0.00'} 
+                disabled
+                className="bg-muted"
               />
             </div>
           </div>
@@ -258,7 +265,7 @@ const GasSupplyDialog = ({
             <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
-            <Button type="submit">{isEditing ? 'Salvar Alterações' : 'Registrar Abastecimento'}</Button>
+            <Button type="submit">{isEditing ? 'Salvar Alterações' : 'Registrar Faturamento'}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

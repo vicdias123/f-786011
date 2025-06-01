@@ -1,32 +1,37 @@
 
 import React from 'react';
-import { Forklift, ForkliftStatus } from '@/types';
+import { LegalCase, CaseStatus } from '@/types';
 import { cn } from '@/lib/utils';
 import Badge from '@/components/common/Badge';
-import { Clock, Settings, Calendar } from 'lucide-react';
+import { Clock, FileText, Calendar } from 'lucide-react';
 
 interface ForkliftCardProps {
-  forklift: Forklift;
+  forklift: LegalCase;
   onClick?: () => void;
 }
 
 const ForkliftCard: React.FC<ForkliftCardProps> = ({ forklift, onClick }) => {
   // Determine the status variant for the badge
-  const getStatusVariant = (status: ForkliftStatus) => {
+  const getStatusVariant = (status: CaseStatus) => {
     switch (status) {
-      case ForkliftStatus.OPERATIONAL:
+      case CaseStatus.ACTIVE:
         return 'success';
-      case ForkliftStatus.MAINTENANCE:
+      case CaseStatus.SUSPENDED:
         return 'warning';
-      case ForkliftStatus.STOPPED:
+      case CaseStatus.CLOSED:
         return 'outline';
+      case CaseStatus.APPEALING:
+        return 'default';
       default:
         return 'default';
     }
   };
 
-  // Format the hour meter to include leading zeros
-  const formattedHourMeter = forklift.hourMeter.toString().padStart(5, '0');
+  // Format the estimated value
+  const formattedValue = new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL'
+  }).format(forklift.estimatedValue);
 
   return (
     <div 
@@ -35,41 +40,41 @@ const ForkliftCard: React.FC<ForkliftCardProps> = ({ forklift, onClick }) => {
     >
       <div className="flex justify-between items-start mb-3">
         <div>
-          <h3 className="text-lg font-semibold">{forklift.id}</h3>
-          <p className="text-muted-foreground text-sm">{forklift.model}</p>
+          <h3 className="text-lg font-semibold">{forklift.caseNumber}</h3>
+          <p className="text-muted-foreground text-sm">{forklift.clientName}</p>
         </div>
-        <Badge variant={getStatusVariant(forklift.status)} withDot={forklift.status === ForkliftStatus.OPERATIONAL}>
+        <Badge variant={getStatusVariant(forklift.status)} withDot={forklift.status === CaseStatus.ACTIVE}>
           {forklift.status}
         </Badge>
       </div>
       
       <div className="space-y-2">
         <div className="flex items-center text-sm">
-          <Settings className="w-4 h-4 mr-2 text-muted-foreground" />
+          <FileText className="w-4 h-4 mr-2 text-muted-foreground" />
           <span className="text-muted-foreground mr-2">Tipo:</span>
           <span>{forklift.type}</span>
         </div>
         
         <div className="flex items-center text-sm">
           <Clock className="w-4 h-4 mr-2 text-muted-foreground" />
-          <span className="text-muted-foreground mr-2">Horímetro:</span>
+          <span className="text-muted-foreground mr-2">Valor Estimado:</span>
           <span className="font-semibold bg-muted/40 px-2 py-0.5 rounded">
-            {formattedHourMeter}
+            {formattedValue}
           </span>
         </div>
         
         <div className="flex items-center text-sm">
           <Calendar className="w-4 h-4 mr-2 text-muted-foreground" />
-          <span className="text-muted-foreground mr-2">Última manutenção:</span>
-          <span>{forklift.lastMaintenance}</span>
+          <span className="text-muted-foreground mr-2">Última atualização:</span>
+          <span>{forklift.lastUpdate}</span>
         </div>
       </div>
       
-      {/* Capacity indicator at the bottom */}
+      {/* Responsible lawyer indicator at the bottom */}
       <div className="mt-3 pt-3 border-t border-border">
         <div className="flex justify-between items-center">
-          <span className="text-sm text-muted-foreground">Capacidade</span>
-          <span className="font-medium">{forklift.capacity}</span>
+          <span className="text-sm text-muted-foreground">Advogado Responsável</span>
+          <span className="font-medium">{forklift.responsibleLawyer}</span>
         </div>
       </div>
     </div>
