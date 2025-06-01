@@ -8,17 +8,18 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Operation } from '@/types';
+import { LegalActivity } from '@/types';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from '@/hooks/use-toast';
 
 interface OperationDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  operation?: Operation;
-  onSave: (operation: Operation) => void;
+  operation?: LegalActivity;
+  onSave: (operation: LegalActivity) => void;
   availableOperators: { id: string; name: string }[];
   availableForklifts: { id: string; model: string }[];
 }
@@ -35,14 +36,15 @@ const OperationDialog = ({
   const isEditing = !!operation;
   
   // Form state
-  const [formData, setFormData] = useState<Partial<Operation>>({
-    operatorId: '',
-    operatorName: '',
-    forkliftId: '',
-    forkliftModel: '',
-    sector: '',
-    initialHourMeter: 0,
-    currentHourMeter: 0,
+  const [formData, setFormData] = useState<Partial<LegalActivity>>({
+    lawyerId: '',
+    lawyerName: '',
+    caseId: '',
+    caseNumber: '',
+    activityType: '',
+    description: '',
+    initialTime: 0,
+    currentTime: 0,
     startTime: new Date().toISOString().slice(0, 16),
     status: 'active'
   });
@@ -58,13 +60,14 @@ const OperationDialog = ({
     } else {
       // Reset form for new operation
       setFormData({
-        operatorId: '',
-        operatorName: '',
-        forkliftId: '',
-        forkliftModel: '',
-        sector: '',
-        initialHourMeter: 0,
-        currentHourMeter: 0,
+        lawyerId: '',
+        lawyerName: '',
+        caseId: '',
+        caseNumber: '',
+        activityType: '',
+        description: '',
+        initialTime: 0,
+        currentTime: 0,
         startTime: new Date().toISOString().slice(0, 16),
         status: 'active'
       });
@@ -72,7 +75,7 @@ const OperationDialog = ({
   }, [operation, open]);
 
   // Handle input changes
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
     
     setFormData(prev => ({
@@ -81,26 +84,26 @@ const OperationDialog = ({
     }));
   };
 
-  // Handle operator selection
-  const handleOperatorChange = (operatorId: string) => {
-    const selectedOperator = availableOperators.find(op => op.id === operatorId);
-    if (selectedOperator) {
+  // Handle lawyer selection
+  const handleLawyerChange = (lawyerId: string) => {
+    const selectedLawyer = availableOperators.find(op => op.id === lawyerId);
+    if (selectedLawyer) {
       setFormData(prev => ({
         ...prev,
-        operatorId,
-        operatorName: selectedOperator.name
+        lawyerId,
+        lawyerName: selectedLawyer.name
       }));
     }
   };
 
-  // Handle forklift selection
-  const handleForkliftChange = (forkliftId: string) => {
-    const selectedForklift = availableForklifts.find(f => f.id === forkliftId);
-    if (selectedForklift) {
+  // Handle case selection
+  const handleCaseChange = (caseId: string) => {
+    const selectedCase = availableForklifts.find(f => f.id === caseId);
+    if (selectedCase) {
       setFormData(prev => ({
         ...prev,
-        forkliftId,
-        forkliftModel: selectedForklift.model
+        caseId,
+        caseNumber: selectedCase.model
       }));
     }
   };
@@ -110,7 +113,7 @@ const OperationDialog = ({
     e.preventDefault();
     
     // Validate form
-    if (!formData.operatorId || !formData.forkliftId || !formData.sector || !formData.startTime) {
+    if (!formData.lawyerId || !formData.caseId || !formData.activityType || !formData.description || !formData.startTime) {
       toast({
         title: "Erro de validação",
         description: "Por favor, preencha todos os campos obrigatórios.",
@@ -120,9 +123,9 @@ const OperationDialog = ({
     }
 
     // Generate ID for new operations
-    const operationData: Operation = {
-      id: operation?.id || `OP${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`,
-      ...formData as Operation
+    const operationData: LegalActivity = {
+      id: operation?.id || `ACT${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`,
+      ...formData as LegalActivity
     };
 
     // Save the operation
@@ -138,8 +141,8 @@ const OperationDialog = ({
   // Complete the operation
   const handleComplete = () => {
     const now = new Date();
-    const completedOperation: Operation = {
-      ...formData as Operation,
+    const completedOperation: LegalActivity = {
+      ...formData as LegalActivity,
       status: 'completed',
       endTime: now.toISOString()
     };
@@ -148,8 +151,8 @@ const OperationDialog = ({
     onOpenChange(false);
     
     toast({
-      title: "Operação concluída",
-      description: "A operação foi finalizada com sucesso."
+      title: "Atividade concluída",
+      description: "A atividade foi finalizada com sucesso."
     });
   };
 
@@ -158,25 +161,25 @@ const OperationDialog = ({
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>
-            {isEditing ? 'Editar Operação' : 'Nova Operação'}
+            {isEditing ? 'Editar Atividade Jurídica' : 'Nova Atividade Jurídica'}
           </DialogTitle>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4 py-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="operatorId">Operador</Label>
+              <Label htmlFor="lawyerId">Advogado</Label>
               <Select 
-                value={formData.operatorId} 
-                onValueChange={handleOperatorChange}
+                value={formData.lawyerId} 
+                onValueChange={handleLawyerChange}
               >
-                <SelectTrigger id="operatorId">
-                  <SelectValue placeholder="Selecione um operador" />
+                <SelectTrigger id="lawyerId">
+                  <SelectValue placeholder="Selecione um advogado" />
                 </SelectTrigger>
                 <SelectContent>
-                  {availableOperators.map(operator => (
-                    <SelectItem key={operator.id} value={operator.id}>
-                      {operator.name}
+                  {availableOperators.map(lawyer => (
+                    <SelectItem key={lawyer.id} value={lawyer.id}>
+                      {lawyer.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -184,18 +187,18 @@ const OperationDialog = ({
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="forkliftId">Empilhadeira</Label>
+              <Label htmlFor="caseId">Caso Jurídico</Label>
               <Select 
-                value={formData.forkliftId}
-                onValueChange={handleForkliftChange}
+                value={formData.caseId}
+                onValueChange={handleCaseChange}
               >
-                <SelectTrigger id="forkliftId">
-                  <SelectValue placeholder="Selecione uma empilhadeira" />
+                <SelectTrigger id="caseId">
+                  <SelectValue placeholder="Selecione um caso" />
                 </SelectTrigger>
                 <SelectContent>
-                  {availableForklifts.map(forklift => (
-                    <SelectItem key={forklift.id} value={forklift.id}>
-                      {forklift.model} ({forklift.id})
+                  {availableForklifts.map(case_item => (
+                    <SelectItem key={case_item.id} value={case_item.id}>
+                      {case_item.model} ({case_item.id})
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -204,35 +207,49 @@ const OperationDialog = ({
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="sector">Setor</Label>
+            <Label htmlFor="activityType">Tipo de Atividade</Label>
             <Input
-              id="sector"
-              name="sector"
-              value={formData.sector}
+              id="activityType"
+              name="activityType"
+              value={formData.activityType}
               onChange={handleChange}
-              placeholder="Ex: Armazém A, Expedição, etc."
+              placeholder="Ex: Audiência, Análise de documentos, Reunião com cliente"
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="description">Descrição da Atividade</Label>
+            <Textarea
+              id="description"
+              name="description"
+              value={formData.description}
+              onChange={handleChange}
+              placeholder="Descreva detalhadamente a atividade realizada"
+              rows={3}
             />
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="initialHourMeter">Horímetro Inicial</Label>
+              <Label htmlFor="initialTime">Tempo Inicial (horas)</Label>
               <Input
-                id="initialHourMeter"
-                name="initialHourMeter"
+                id="initialTime"
+                name="initialTime"
                 type="number"
-                value={formData.initialHourMeter}
+                step="0.5"
+                value={formData.initialTime}
                 onChange={handleChange}
               />
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="currentHourMeter">Horímetro Atual</Label>
+              <Label htmlFor="currentTime">Tempo Atual (horas)</Label>
               <Input
-                id="currentHourMeter"
-                name="currentHourMeter"
+                id="currentTime"
+                name="currentTime"
                 type="number"
-                value={formData.currentHourMeter || formData.initialHourMeter}
+                step="0.5"
+                value={formData.currentTime || formData.initialTime}
                 onChange={handleChange}
               />
             </div>
@@ -267,13 +284,13 @@ const OperationDialog = ({
           
           {isEditing && (
             <div className="space-y-2">
-              <Label htmlFor="gasConsumption">Consumo de Combustível (L)</Label>
+              <Label htmlFor="billableHours">Horas Faturáveis</Label>
               <Input
-                id="gasConsumption"
-                name="gasConsumption"
+                id="billableHours"
+                name="billableHours"
                 type="number"
-                step="0.1"
-                value={formData.gasConsumption || ''}
+                step="0.5"
+                value={formData.billableHours || ''}
                 onChange={handleChange}
                 placeholder="Opcional"
               />
@@ -288,14 +305,14 @@ const OperationDialog = ({
                 className="mr-auto" 
                 onClick={handleComplete}
               >
-                Finalizar Operação
+                Finalizar Atividade
               </Button>
             )}
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
             <Button type="submit">
-              {isEditing ? 'Salvar Alterações' : 'Criar Operação'}
+              {isEditing ? 'Salvar Alterações' : 'Criar Atividade'}
             </Button>
           </DialogFooter>
         </form>

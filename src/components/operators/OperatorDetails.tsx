@@ -9,7 +9,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { User } from '@/types';
+import { Lawyer } from '@/types';
 import { Badge } from "@/components/ui/badge";
 import { cn } from '@/lib/utils';
 import { BadgeCheck, Calendar, CalendarDays, Clock, FileText, Phone, User as UserIcon } from 'lucide-react';
@@ -17,7 +17,7 @@ import { BadgeCheck, Calendar, CalendarDays, Clock, FileText, Phone, User as Use
 interface OperatorDetailsProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  operator: User | null;
+  operator: Lawyer | null;
   onEdit: () => void;
 }
 
@@ -60,8 +60,8 @@ const OperatorDetails = ({ open, onOpenChange, operator, onEdit }: OperatorDetai
             
             <div className="space-y-2">
               <div className="text-sm">
-                <span className="text-muted-foreground">CPF:</span>
-                <span className="ml-2">{operator.cpf}</span>
+                <span className="text-muted-foreground">OAB:</span>
+                <span className="ml-2">{operator.oab}</span>
               </div>
               
               <div className="text-sm flex items-center">
@@ -73,9 +73,9 @@ const OperatorDetails = ({ open, onOpenChange, operator, onEdit }: OperatorDetai
               </div>
               
               <div className="text-sm">
-                <span className="text-muted-foreground">Turno:</span>
+                <span className="text-muted-foreground">Especialização:</span>
                 <span className="ml-2">
-                  <Badge variant="secondary" className="font-normal">{operator.shift}</Badge>
+                  <Badge variant="secondary" className="font-normal">{operator.specialization}</Badge>
                 </span>
               </div>
             </div>
@@ -100,29 +100,29 @@ const OperatorDetails = ({ open, onOpenChange, operator, onEdit }: OperatorDetai
             <div className="space-y-3">
               <div className="p-3 rounded-md border">
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-medium">ASO</span>
-                  <Badge className={cn("font-normal", getStatusClass(operator.asoStatus))}>
+                  <span className="text-sm font-medium">OAB</span>
+                  <Badge className={cn("font-normal", getStatusClass(operator.oabStatus))}>
                     <BadgeCheck className="mr-1 h-3 w-3" />
-                    {operator.asoStatus}
+                    {operator.oabStatus}
                   </Badge>
                 </div>
                 <div className="flex items-center text-sm text-muted-foreground">
                   <Calendar className="h-3 w-3 mr-1" />
-                  <span>Validade: {operator.asoExpirationDate}</span>
+                  <span>Validade: {operator.oabExpirationDate}</span>
                 </div>
               </div>
               
               <div className="p-3 rounded-md border">
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-medium">NR-11</span>
-                  <Badge className={cn("font-normal", getStatusClass(operator.nrStatus))}>
+                  <span className="text-sm font-medium">CPP</span>
+                  <Badge className={cn("font-normal", getStatusClass(operator.cppStatus))}>
                     <BadgeCheck className="mr-1 h-3 w-3" />
-                    {operator.nrStatus}
+                    {operator.cppStatus}
                   </Badge>
                 </div>
                 <div className="flex items-center text-sm text-muted-foreground">
                   <Calendar className="h-3 w-3 mr-1" />
-                  <span>Validade: {operator.nrExpirationDate}</span>
+                  <span>Validade: {operator.cppExpirationDate}</span>
                 </div>
               </div>
             </div>
@@ -134,7 +134,7 @@ const OperatorDetails = ({ open, onOpenChange, operator, onEdit }: OperatorDetai
             Fechar
           </Button>
           <Button onClick={onEdit}>
-            Editar Operador
+            Editar Advogado
           </Button>
         </DialogFooter>
       </DialogContent>

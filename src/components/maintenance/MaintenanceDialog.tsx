@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Maintenance, MaintenanceStatus } from '@/types';
+import { Document, DocumentStatus } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
@@ -25,8 +25,8 @@ import { Textarea } from '@/components/ui/textarea';
 interface MaintenanceDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  maintenance?: Maintenance;
-  onSave: (maintenance: Maintenance) => void;
+  maintenance?: Document;
+  onSave: (maintenance: Document) => void;
   availableForklifts: { id: string; model: string }[];
   availableOperators: { id: string; name: string }[];
 }
@@ -42,51 +42,37 @@ const MaintenanceDialog = ({
   const { toast } = useToast();
   const isEditing = !!maintenance;
   
-  const defaultCompletedDate = maintenance?.completedDate || '';
-  
-  const [formData, setFormData] = useState<Partial<Maintenance>>(
+  const [formData, setFormData] = useState<Partial<Document>>(
     maintenance || {
-      id: `M${Math.floor(Math.random() * 10000).toString().padStart(3, '0')}`,
-      forkliftId: '',
-      forkliftModel: '',
-      issue: '',
-      reportedBy: '',
-      reportedDate: format(new Date(), 'yyyy-MM-dd'),
-      status: MaintenanceStatus.WAITING,
-      completedDate: ''
+      id: `DOC${Math.floor(Math.random() * 10000).toString().padStart(3, '0')}`,
+      caseId: '',
+      caseNumber: '',
+      documentType: '',
+      createdBy: '',
+      creationDate: format(new Date(), 'yyyy-MM-dd'),
+      status: DocumentStatus.PENDING,
+      deadline: ''
     }
   );
 
-  // Handle forklift selection
-  const handleForkliftChange = (forkliftId: string) => {
-    const selectedForklift = availableForklifts.find(f => f.id === forkliftId);
+  // Handle case selection
+  const handleCaseChange = (caseId: string) => {
+    const selectedCase = availableForklifts.find(f => f.id === caseId);
     setFormData(prev => ({ 
       ...prev, 
-      forkliftId,
-      forkliftModel: selectedForklift?.model || ''
+      caseId,
+      caseNumber: selectedCase?.model || ''
     }));
   };
 
-  // Handle reporter selection
-  const handleReporterChange = (reporter: string) => {
-    setFormData(prev => ({ ...prev, reportedBy: reporter }));
+  // Handle creator selection
+  const handleCreatorChange = (creator: string) => {
+    setFormData(prev => ({ ...prev, createdBy: creator }));
   };
 
   // Handle form field changes
-  const handleChange = (field: keyof Maintenance, value: any) => {
+  const handleChange = (field: keyof Document, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-    
-    // If changing status to completed, set completed date to today
-    if (field === 'status' && value === MaintenanceStatus.COMPLETED) {
-      setFormData(prev => ({ 
-        ...prev, 
-        completedDate: format(new Date(), 'yyyy-MM-dd')
-      }));
-    }
-    // If changing status from completed, clear completed date
-    else if (field === 'status' && value !== MaintenanceStatus.COMPLETED && formData.completedDate) {
-      setFormData(prev => ({ ...prev, completedDate: '' }));
-    }
   };
 
   // Format date for display
@@ -116,7 +102,7 @@ const MaintenanceDialog = ({
     e.preventDefault();
     
     // Validate form
-    if (!formData.forkliftId || !formData.issue || !formData.reportedBy || !formData.reportedDate) {
+    if (!formData.caseId || !formData.documentType || !formData.createdBy || !formData.creationDate) {
       toast({
         title: "Erro ao salvar",
         description: "Preencha todos os campos obrigatórios",
@@ -125,28 +111,28 @@ const MaintenanceDialog = ({
       return;
     }
     
-    // Save maintenance
-    onSave(formData as Maintenance);
+    // Save document
+    onSave(formData as Document);
     
     // Reset form and close dialog
     if (!isEditing) {
       setFormData({
-        id: `M${Math.floor(Math.random() * 10000).toString().padStart(3, '0')}`,
-        forkliftId: '',
-        forkliftModel: '',
-        issue: '',
-        reportedBy: '',
-        reportedDate: format(new Date(), 'yyyy-MM-dd'),
-        status: MaintenanceStatus.WAITING,
-        completedDate: ''
+        id: `DOC${Math.floor(Math.random() * 10000).toString().padStart(3, '0')}`,
+        caseId: '',
+        caseNumber: '',
+        documentType: '',
+        createdBy: '',
+        creationDate: format(new Date(), 'yyyy-MM-dd'),
+        status: DocumentStatus.PENDING,
+        deadline: ''
       });
     }
     
     onOpenChange(false);
     
     toast({
-      title: isEditing ? "Manutenção atualizada" : "Manutenção registrada",
-      description: `Manutenção ${isEditing ? 'atualizada' : 'registrada'} com sucesso!`
+      title: isEditing ? "Documento atualizado" : "Documento registrado",
+      description: `Documento ${isEditing ? 'atualizado' : 'registrado'} com sucesso!`
     });
   };
 
@@ -154,11 +140,11 @@ const MaintenanceDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>{isEditing ? 'Editar Manutenção' : 'Registrar Nova Manutenção'}</DialogTitle>
+          <DialogTitle>{isEditing ? 'Editar Documento' : 'Registrar Novo Documento'}</DialogTitle>
           <DialogDescription>
             {isEditing 
-              ? 'Edite as informações da manutenção nos campos abaixo.' 
-              : 'Preencha as informações da nova manutenção nos campos abaixo.'}
+              ? 'Edite as informações do documento nos campos abaixo.' 
+              : 'Preencha as informações do novo documento nos campos abaixo.'}
           </DialogDescription>
         </DialogHeader>
         
@@ -166,18 +152,18 @@ const MaintenanceDialog = ({
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="forkliftId">Empilhadeira</Label>
+                <Label htmlFor="caseId">Caso Jurídico</Label>
                 <Select 
-                  value={formData.forkliftId} 
-                  onValueChange={handleForkliftChange}
+                  value={formData.caseId} 
+                  onValueChange={handleCaseChange}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecione a empilhadeira" />
+                    <SelectValue placeholder="Selecione o caso" />
                   </SelectTrigger>
                   <SelectContent>
-                    {availableForklifts.map(forklift => (
-                      <SelectItem key={forklift.id} value={forklift.id}>
-                        {forklift.model} ({forklift.id})
+                    {availableForklifts.map(case_item => (
+                      <SelectItem key={case_item.id} value={case_item.id}>
+                        {case_item.model} ({case_item.id})
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -194,31 +180,30 @@ const MaintenanceDialog = ({
                     <SelectValue placeholder="Selecione o status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value={MaintenanceStatus.WAITING}>Aguardando</SelectItem>
-                    <SelectItem value={MaintenanceStatus.IN_PROGRESS}>Em andamento</SelectItem>
-                    <SelectItem value={MaintenanceStatus.COMPLETED}>Concluído</SelectItem>
+                    <SelectItem value={DocumentStatus.PENDING}>Pendente</SelectItem>
+                    <SelectItem value={DocumentStatus.IN_REVIEW}>Em Revisão</SelectItem>
+                    <SelectItem value={DocumentStatus.COMPLETED}>Concluído</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="issue">Descrição do Problema</Label>
-              <Textarea 
-                id="issue" 
-                value={formData.issue} 
-                onChange={(e) => handleChange('issue', e.target.value)}
-                placeholder="Descreva o problema da empilhadeira"
-                rows={3}
+              <Label htmlFor="documentType">Tipo de Documento</Label>
+              <Input 
+                id="documentType" 
+                value={formData.documentType} 
+                onChange={(e) => handleChange('documentType', e.target.value)}
+                placeholder="Ex: Petição inicial, Contestação, Recurso"
               />
             </div>
             
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="reportedBy">Reportado por</Label>
+                <Label htmlFor="createdBy">Criado por</Label>
                 <Select 
-                  value={formData.reportedBy} 
-                  onValueChange={handleReporterChange}
+                  value={formData.createdBy} 
+                  onValueChange={handleCreatorChange}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione" />
@@ -234,7 +219,7 @@ const MaintenanceDialog = ({
               </div>
               
               <div className="space-y-2">
-                <Label>Data Reportada</Label>
+                <Label>Data de Criação</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
@@ -242,14 +227,14 @@ const MaintenanceDialog = ({
                       className="w-full justify-start text-left font-normal"
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {formatDateForDisplay(formData.reportedDate || '')}
+                      {formatDateForDisplay(formData.creationDate || '')}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
                     <Calendar
                       mode="single"
-                      selected={parseDate(formData.reportedDate || '')}
-                      onSelect={(date) => handleChange('reportedDate', format(date || new Date(), 'yyyy-MM-dd'))}
+                      selected={parseDate(formData.creationDate || '')}
+                      onSelect={(date) => handleChange('creationDate', format(date || new Date(), 'yyyy-MM-dd'))}
                       locale={ptBR}
                       className={cn("p-3 pointer-events-auto")}
                     />
@@ -258,9 +243,9 @@ const MaintenanceDialog = ({
               </div>
             </div>
             
-            {formData.status === MaintenanceStatus.COMPLETED && (
+            {formData.deadline && (
               <div className="space-y-2">
-                <Label>Data de Conclusão</Label>
+                <Label>Prazo</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
@@ -268,14 +253,14 @@ const MaintenanceDialog = ({
                       className="w-full justify-start text-left font-normal"
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {formatDateForDisplay(formData.completedDate || '')}
+                      {formatDateForDisplay(formData.deadline || '')}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
                     <Calendar
                       mode="single"
-                      selected={parseDate(formData.completedDate || '')}
-                      onSelect={(date) => handleChange('completedDate', format(date || new Date(), 'yyyy-MM-dd'))}
+                      selected={parseDate(formData.deadline || '')}
+                      onSelect={(date) => handleChange('deadline', format(date || new Date(), 'yyyy-MM-dd'))}
                       locale={ptBR}
                       className={cn("p-3 pointer-events-auto")}
                     />
@@ -289,7 +274,7 @@ const MaintenanceDialog = ({
             <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
-            <Button type="submit">{isEditing ? 'Salvar Alterações' : 'Registrar Manutenção'}</Button>
+            <Button type="submit">{isEditing ? 'Salvar Alterações' : 'Registrar Documento'}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

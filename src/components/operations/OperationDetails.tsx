@@ -9,7 +9,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Operation } from '@/types';
+import { LegalActivity } from '@/types';
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Clock, Gauge, Info, Map, Settings, Scale, User, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -17,7 +17,7 @@ import { cn } from '@/lib/utils';
 interface OperationDetailsProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  operation: Operation | null;
+  operation: LegalActivity | null;
   onEdit: () => void;
 }
 
@@ -68,7 +68,7 @@ const OperationDetails = ({ open, onOpenChange, operation, onEdit }: OperationDe
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <span className="text-xl">Atividade Jurídica #{operation.id}</span>
-            <Badge variant={operation.status === 'active' ? 'success' : 'default'}>
+            <Badge variant={operation.status === 'active' ? 'default' : 'outline'}>
               {operation.status === 'active' ? 'Em Andamento' : 'Concluída'}
             </Badge>
           </DialogTitle>
@@ -90,7 +90,7 @@ const OperationDetails = ({ open, onOpenChange, operation, onEdit }: OperationDe
                   <User className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm">Advogado</span>
                 </div>
-                <span className="text-sm font-medium">{operation.operatorName}</span>
+                <span className="text-sm font-medium">{operation.lawyerName}</span>
               </div>
               
               <div className="flex items-center justify-between border-b pb-2">
@@ -98,15 +98,15 @@ const OperationDetails = ({ open, onOpenChange, operation, onEdit }: OperationDe
                   <Scale className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm">Caso</span>
                 </div>
-                <span className="text-sm font-medium">{operation.forkliftModel} ({operation.forkliftId})</span>
+                <span className="text-sm font-medium">{operation.caseNumber} ({operation.caseId})</span>
               </div>
               
               <div className="flex items-center justify-between border-b pb-2">
                 <div className="flex items-center gap-2">
                   <Map className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">Área Jurídica</span>
+                  <span className="text-sm">Tipo de Atividade</span>
                 </div>
-                <span className="text-sm font-medium">{operation.sector}</span>
+                <span className="text-sm font-medium">{operation.activityType}</span>
               </div>
             </div>
           </div>
@@ -146,16 +146,16 @@ const OperationDetails = ({ open, onOpenChange, operation, onEdit }: OperationDe
           
           <div className="grid grid-cols-2 gap-4 p-3 bg-muted/20 rounded-md">
             <div>
-              <span className="text-sm text-muted-foreground">Horas Iniciais</span>
-              <div className="text-lg font-medium">{operation.initialHourMeter}h</div>
+              <span className="text-sm text-muted-foreground">Tempo Inicial</span>
+              <div className="text-lg font-medium">{operation.initialTime}h</div>
             </div>
             <div>
-              <span className="text-sm text-muted-foreground">Horas Atuais/Finais</span>
-              <div className="text-lg font-medium">{operation.currentHourMeter || operation.initialHourMeter}h</div>
+              <span className="text-sm text-muted-foreground">Tempo Atual</span>
+              <div className="text-lg font-medium">{operation.currentTime || operation.initialTime}h</div>
             </div>
           </div>
           
-          {operation.gasConsumption && (
+          {operation.billableHours && (
             <div className="mt-4">
               <div className="flex items-center gap-2 mb-3">
                 <FileText className="h-4 w-4 text-muted-foreground" />
@@ -165,11 +165,22 @@ const OperationDetails = ({ open, onOpenChange, operation, onEdit }: OperationDe
               <div className="p-3 bg-muted/20 rounded-md">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm">Total de Horas Faturáveis</span>
-                  <span className="text-sm font-medium">{operation.gasConsumption}h</span>
+                  <span className="text-sm font-medium">{operation.billableHours}h</span>
                 </div>
               </div>
             </div>
           )}
+          
+          <div className="mt-4">
+            <div className="flex items-center gap-2 mb-3">
+              <FileText className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm font-medium">Descrição da Atividade</span>
+            </div>
+            
+            <div className="p-3 bg-muted/20 rounded-md">
+              <p className="text-sm">{operation.description}</p>
+            </div>
+          </div>
         </div>
         
         <DialogFooter className="gap-2 mt-4">

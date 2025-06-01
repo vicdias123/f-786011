@@ -6,77 +6,67 @@ import { Button } from "@/components/ui/button";
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
-import { Calendar, Filter, Plus, Search, Truck, User, AlertOctagon } from 'lucide-react';
-import { Maintenance, MaintenanceStatus } from '@/types';
+import { Calendar, Filter, Plus, Search, Scale, User, AlertOctagon } from 'lucide-react';
+import { Document, DocumentStatus } from '@/types';
 import MaintenanceDialog from '@/components/maintenance/MaintenanceDialog';
 import { useToast } from '@/hooks/use-toast';
 
-// Mock data for maintenance
-const initialMaintenance: Maintenance[] = [
+// Mock data for documents
+const initialMaintenance: Document[] = [
   {
-    id: 'M001',
-    forkliftId: 'G001',
-    forkliftModel: 'Toyota 8FGU25',
-    issue: 'Vazamento de óleo hidráulico',
-    reportedBy: 'Carlos Silva',
-    reportedDate: '2023-11-15',
-    status: MaintenanceStatus.WAITING
+    id: 'DOC001',
+    caseId: 'CASO001',
+    caseNumber: 'PROC-2023-001',
+    documentType: 'Petição Inicial',
+    createdBy: 'Carlos Silva',
+    creationDate: '2023-11-15',
+    status: DocumentStatus.PENDING
   },
   {
-    id: 'M002',
-    forkliftId: 'R003',
-    forkliftModel: 'Crown RR5725',
-    issue: 'Motor de tração com ruído anormal',
-    reportedBy: 'João Pereira',
-    reportedDate: '2023-11-10',
-    status: MaintenanceStatus.IN_PROGRESS
+    id: 'DOC002',
+    caseId: 'CASO002',
+    caseNumber: 'PROC-2023-002',
+    documentType: 'Contestação',
+    createdBy: 'João Pereira',
+    creationDate: '2023-11-10',
+    status: DocumentStatus.IN_REVIEW
   },
   {
-    id: 'M003',
-    forkliftId: 'E002',
-    forkliftModel: 'Hyster E50XN',
-    issue: 'Bateria não segura carga completa',
-    reportedBy: 'Maria Oliveira',
-    reportedDate: '2023-11-05',
-    status: MaintenanceStatus.IN_PROGRESS
+    id: 'DOC003',
+    caseId: 'CASO003',
+    caseNumber: 'PROC-2023-003',
+    documentType: 'Recurso de Apelação',
+    createdBy: 'Maria Oliveira',
+    creationDate: '2023-11-05',
+    status: DocumentStatus.IN_REVIEW
   },
   {
-    id: 'M004',
-    forkliftId: 'G004',
-    forkliftModel: 'Yale GLP050',
-    issue: 'Freios necessitando ajuste',
-    reportedBy: 'Pedro Santos',
-    reportedDate: '2023-10-28',
-    status: MaintenanceStatus.COMPLETED,
-    completedDate: '2023-11-03'
-  },
-  {
-    id: 'M005',
-    forkliftId: 'G001',
-    forkliftModel: 'Toyota 8FGU25',
-    issue: 'Revisão programada 1000h',
-    reportedBy: 'Ana Costa',
-    reportedDate: '2023-10-25',
-    status: MaintenanceStatus.COMPLETED,
-    completedDate: '2023-10-30'
+    id: 'DOC004',
+    caseId: 'CASO004',
+    caseNumber: 'PROC-2023-004',
+    documentType: 'Parecer Jurídico',
+    createdBy: 'Pedro Santos',
+    creationDate: '2023-10-28',
+    status: DocumentStatus.COMPLETED,
+    deadline: '2023-11-03'
   }
 ];
 
-// Mock data for available forklifts and operators
+// Mock data for available cases and lawyers
 const availableForklifts = [
-  { id: 'G001', model: 'Toyota 8FGU25' },
-  { id: 'G004', model: 'Yale GLP050' },
-  { id: 'E002', model: 'Hyster E50XN' },
-  { id: 'R003', model: 'Crown RR5725' },
-  { id: 'E005', model: 'Toyota 8FBMT30' }
+  { id: 'CASO001', model: 'PROC-2023-001' },
+  { id: 'CASO002', model: 'PROC-2023-002' },
+  { id: 'CASO003', model: 'PROC-2023-003' },
+  { id: 'CASO004', model: 'PROC-2023-004' },
+  { id: 'CASO005', model: 'PROC-2023-005' }
 ];
 
 const availableOperators = [
-  { id: 'OP001', name: 'Carlos Silva' },
-  { id: 'OP002', name: 'Maria Oliveira' },
-  { id: 'OP003', name: 'João Pereira' },
-  { id: 'OP004', name: 'Ana Costa' },
-  { id: 'SV001', name: 'Pedro Santos' }
+  { id: 'ADV001', name: 'Carlos Silva' },
+  { id: 'ADV002', name: 'Maria Oliveira' },
+  { id: 'ADV003', name: 'João Pereira' },
+  { id: 'ADV004', name: 'Ana Costa' },
+  { id: 'ADV005', name: 'Pedro Santos' }
 ];
 
 const MaintenancePage = () => {
@@ -84,22 +74,22 @@ const MaintenancePage = () => {
   const { toast } = useToast();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [maintenanceItems, setMaintenanceItems] = useState<Maintenance[]>(initialMaintenance);
+  const [maintenanceItems, setMaintenanceItems] = useState<Document[]>(initialMaintenance);
   
   // Dialog states
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [selectedMaintenance, setSelectedMaintenance] = useState<Maintenance | null>(null);
+  const [selectedMaintenance, setSelectedMaintenance] = useState<Document | null>(null);
   
-  // Filter maintenance based on search and filters
-  const filteredMaintenance = maintenanceItems.filter(maintenance => {
+  // Filter documents based on search and filters
+  const filteredMaintenance = maintenanceItems.filter(document => {
     // Search filter
-    const matchesSearch = maintenance.forkliftModel.toLowerCase().includes(search.toLowerCase()) || 
-                          maintenance.issue.toLowerCase().includes(search.toLowerCase()) ||
-                          maintenance.reportedBy.toLowerCase().includes(search.toLowerCase());
+    const matchesSearch = document.caseNumber.toLowerCase().includes(search.toLowerCase()) || 
+                          document.documentType.toLowerCase().includes(search.toLowerCase()) ||
+                          document.createdBy.toLowerCase().includes(search.toLowerCase());
     
     // Status filter
-    const matchesStatus = statusFilter === 'all' || maintenance.status === statusFilter;
+    const matchesStatus = statusFilter === 'all' || document.status === statusFilter;
     
     return matchesSearch && matchesStatus;
   });
@@ -115,51 +105,51 @@ const MaintenancePage = () => {
   };
 
   // Get status classes
-  const getStatusClass = (status: MaintenanceStatus) => {
+  const getStatusClass = (status: DocumentStatus) => {
     switch (status) {
-      case MaintenanceStatus.WAITING:
+      case DocumentStatus.PENDING:
         return 'bg-status-warning/10 text-status-warning';
-      case MaintenanceStatus.IN_PROGRESS:
+      case DocumentStatus.IN_REVIEW:
         return 'bg-status-maintenance/10 text-status-maintenance';
-      case MaintenanceStatus.COMPLETED:
+      case DocumentStatus.COMPLETED:
         return 'bg-status-operational/10 text-status-operational';
       default:
         return 'bg-muted text-muted-foreground';
     }
   };
 
-  // Handle add/edit maintenance
-  const handleSaveMaintenance = (maintenanceData: Maintenance) => {
+  // Handle add/edit document
+  const handleSaveMaintenance = (maintenanceData: Document) => {
     if (editDialogOpen) {
-      // Update existing maintenance
+      // Update existing document
       setMaintenanceItems(prev => 
         prev.map(m => m.id === maintenanceData.id ? maintenanceData : m)
       );
     } else {
-      // Add new maintenance
+      // Add new document
       setMaintenanceItems(prev => [...prev, maintenanceData]);
     }
   };
 
-  // Handle edit maintenance
-  const handleEditMaintenance = (maintenance: Maintenance) => {
-    setSelectedMaintenance(maintenance);
+  // Handle edit document
+  const handleEditMaintenance = (document: Document) => {
+    setSelectedMaintenance(document);
     setEditDialogOpen(true);
   };
 
-  // Handle delete maintenance
+  // Handle delete document
   const handleDeleteMaintenance = (id: string) => {
-    if (confirm("Tem certeza que deseja excluir este registro de manutenção?")) {
+    if (confirm("Tem certeza que deseja excluir este documento?")) {
       setMaintenanceItems(prev => prev.filter(m => m.id !== id));
       toast({
-        title: "Manutenção excluída",
-        description: "O registro de manutenção foi excluído com sucesso."
+        title: "Documento excluído",
+        description: "O documento foi excluído com sucesso."
       });
     }
   };
 
   // Translate status
-  const getStatusTranslation = (status: MaintenanceStatus) => {
+  const getStatusTranslation = (status: DocumentStatus) => {
     return status;
   };
 
@@ -169,11 +159,11 @@ const MaintenancePage = () => {
       
       <div className={cn(
         "flex-1 flex flex-col",
-        !isMobile && "ml-64" // Offset for sidebar when not mobile
+        !isMobile && "ml-64"
       )}>
         <Navbar 
-          title="Manutenção" 
-          subtitle="Gestão de Manutenções"
+          title="Documentos" 
+          subtitle="Gestão de Documentos Jurídicos"
         />
         
         <main className="flex-1 px-6 py-6">
@@ -183,7 +173,7 @@ const MaintenancePage = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
               <Input 
                 type="text" 
-                placeholder="Buscar manutenção..." 
+                placeholder="Buscar documento..." 
                 className="pl-10"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -211,7 +201,7 @@ const MaintenancePage = () => {
                 }}
               >
                 <Plus className="w-4 h-4" />
-                Nova Manutenção
+                Novo Documento
               </Button>
             </div>
           </div>
@@ -226,32 +216,32 @@ const MaintenancePage = () => {
                 onChange={(e) => setStatusFilter(e.target.value)}
               >
                 <option value="all">Todos</option>
-                <option value={MaintenanceStatus.WAITING}>Aguardando</option>
-                <option value={MaintenanceStatus.IN_PROGRESS}>Em andamento</option>
-                <option value={MaintenanceStatus.COMPLETED}>Concluído</option>
+                <option value={DocumentStatus.PENDING}>Pendente</option>
+                <option value={DocumentStatus.IN_REVIEW}>Em Revisão</option>
+                <option value={DocumentStatus.COMPLETED}>Concluído</option>
               </select>
             </div>
           </div>
           
-          {/* Maintenance Cards - Waiting & In Progress */}
+          {/* Documents Cards - Pending & In Review */}
           <div className="mb-8">
-            <h2 className="text-2xl font-semibold mb-4">Manutenções Pendentes</h2>
+            <h2 className="text-2xl font-semibold mb-4">Documentos Pendentes</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredMaintenance
-                .filter(m => m.status !== MaintenanceStatus.COMPLETED)
-                .map((maintenance) => (
-                  <div key={maintenance.id} className="bg-card border rounded-lg overflow-hidden shadow">
+                .filter(m => m.status !== DocumentStatus.COMPLETED)
+                .map((document) => (
+                  <div key={document.id} className="bg-card border rounded-lg overflow-hidden shadow">
                     <div className="p-4">
                       <div className="flex justify-between items-start mb-3">
                         <div>
-                          <h3 className="font-medium">Manutenção #{maintenance.id}</h3>
-                          <p className="text-sm text-muted-foreground">{maintenance.forkliftModel}</p>
+                          <h3 className="font-medium">Documento #{document.id}</h3>
+                          <p className="text-sm text-muted-foreground">{document.caseNumber}</p>
                         </div>
                         <span className={cn(
                           "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs",
-                          getStatusClass(maintenance.status)
+                          getStatusClass(document.status)
                         )}>
-                          {getStatusTranslation(maintenance.status)}
+                          {getStatusTranslation(document.status)}
                         </span>
                       </div>
                       
@@ -259,32 +249,32 @@ const MaintenancePage = () => {
                         <div className="p-3 bg-muted/30 rounded-md">
                           <div className="flex items-start gap-2">
                             <AlertOctagon className="w-4 h-4 text-status-warning mt-0.5" />
-                            <p className="text-sm">{maintenance.issue}</p>
+                            <p className="text-sm">{document.documentType}</p>
                           </div>
                         </div>
                         
                         <div className="flex items-center gap-2">
-                          <Truck className="w-4 h-4 text-muted-foreground" />
-                          <span className="text-sm">{maintenance.forkliftId}</span>
+                          <Scale className="w-4 h-4 text-muted-foreground" />
+                          <span className="text-sm">{document.caseId}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <User className="w-4 h-4 text-muted-foreground" />
-                          <span className="text-sm">Reportado por: {maintenance.reportedBy}</span>
+                          <span className="text-sm">Criado por: {document.createdBy}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <Calendar className="w-4 h-4 text-muted-foreground" />
-                          <span className="text-sm">Data: {formatDate(maintenance.reportedDate)}</span>
+                          <span className="text-sm">Data: {formatDate(document.creationDate)}</span>
                         </div>
                       </div>
                     </div>
                     
                     <div className="border-t px-4 py-3 bg-muted/30 flex justify-between">
-                      <span className="text-sm">ID: {maintenance.id}</span>
+                      <span className="text-sm">ID: {document.id}</span>
                       <div className="flex gap-2">
                         <Button 
                           variant="ghost" 
                           size="sm"
-                          onClick={() => handleEditMaintenance(maintenance)}
+                          onClick={() => handleEditMaintenance(document)}
                         >
                           Editar
                         </Button>
@@ -292,7 +282,7 @@ const MaintenancePage = () => {
                           variant="ghost" 
                           size="sm"
                           className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                          onClick={() => handleDeleteMaintenance(maintenance.id)}
+                          onClick={() => handleDeleteMaintenance(document.id)}
                         >
                           Excluir
                         </Button>
@@ -301,52 +291,52 @@ const MaintenancePage = () => {
                   </div>
                 ))}
               
-              {filteredMaintenance.filter(m => m.status !== MaintenanceStatus.COMPLETED).length === 0 && (
+              {filteredMaintenance.filter(m => m.status !== DocumentStatus.COMPLETED).length === 0 && (
                 <div className="col-span-full p-8 text-center bg-card border rounded-lg">
-                  <p className="text-muted-foreground">Nenhuma manutenção pendente</p>
+                  <p className="text-muted-foreground">Nenhum documento pendente</p>
                 </div>
               )}
             </div>
           </div>
           
-          {/* Maintenance History */}
+          {/* Documents History */}
           <div>
-            <h2 className="text-2xl font-semibold mb-4">Histórico de Manutenções</h2>
+            <h2 className="text-2xl font-semibold mb-4">Histórico de Documentos</h2>
             <div className="bg-card rounded-lg shadow overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead className="bg-muted/50">
                     <tr>
                       <th className="p-4 text-left font-medium text-muted-foreground">ID</th>
-                      <th className="p-4 text-left font-medium text-muted-foreground">Empilhadeira</th>
-                      <th className="p-4 text-left font-medium text-muted-foreground">Problema</th>
-                      <th className="p-4 text-left font-medium text-muted-foreground">Reportado por</th>
-                      <th className="p-4 text-left font-medium text-muted-foreground">Data Reportada</th>
-                      <th className="p-4 text-left font-medium text-muted-foreground">Data Concluída</th>
+                      <th className="p-4 text-left font-medium text-muted-foreground">Caso</th>
+                      <th className="p-4 text-left font-medium text-muted-foreground">Tipo</th>
+                      <th className="p-4 text-left font-medium text-muted-foreground">Criado por</th>
+                      <th className="p-4 text-left font-medium text-muted-foreground">Data Criação</th>
+                      <th className="p-4 text-left font-medium text-muted-foreground">Prazo</th>
                       <th className="p-4 text-left font-medium text-muted-foreground">Status</th>
                       <th className="p-4 text-left font-medium text-muted-foreground">Ações</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
                     {filteredMaintenance
-                      .filter(m => m.status === MaintenanceStatus.COMPLETED)
-                      .map((maintenance) => (
-                        <tr key={maintenance.id} className="hover:bg-muted/50 transition-colors">
-                          <td className="p-4">{maintenance.id}</td>
+                      .filter(m => m.status === DocumentStatus.COMPLETED)
+                      .map((document) => (
+                        <tr key={document.id} className="hover:bg-muted/50 transition-colors">
+                          <td className="p-4">{document.id}</td>
                           <td className="p-4">
-                            <div>{maintenance.forkliftModel}</div>
-                            <div className="text-xs text-muted-foreground">{maintenance.forkliftId}</div>
+                            <div>{document.caseNumber}</div>
+                            <div className="text-xs text-muted-foreground">{document.caseId}</div>
                           </td>
-                          <td className="p-4">{maintenance.issue}</td>
-                          <td className="p-4">{maintenance.reportedBy}</td>
-                          <td className="p-4">{formatDate(maintenance.reportedDate)}</td>
-                          <td className="p-4">{maintenance.completedDate ? formatDate(maintenance.completedDate) : '-'}</td>
+                          <td className="p-4">{document.documentType}</td>
+                          <td className="p-4">{document.createdBy}</td>
+                          <td className="p-4">{formatDate(document.creationDate)}</td>
+                          <td className="p-4">{document.deadline ? formatDate(document.deadline) : '-'}</td>
                           <td className="p-4">
                             <span className={cn(
                               "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs",
-                              getStatusClass(maintenance.status)
+                              getStatusClass(document.status)
                             )}>
-                              {getStatusTranslation(maintenance.status)}
+                              {getStatusTranslation(document.status)}
                             </span>
                           </td>
                           <td className="p-4">
@@ -354,7 +344,7 @@ const MaintenancePage = () => {
                               <Button 
                                 variant="ghost" 
                                 size="sm"
-                                onClick={() => handleEditMaintenance(maintenance)}
+                                onClick={() => handleEditMaintenance(document)}
                               >
                                 Editar
                               </Button>
@@ -362,7 +352,7 @@ const MaintenancePage = () => {
                                 variant="ghost" 
                                 size="sm"
                                 className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                                onClick={() => handleDeleteMaintenance(maintenance.id)}
+                                onClick={() => handleDeleteMaintenance(document.id)}
                               >
                                 Excluir
                               </Button>
@@ -374,9 +364,9 @@ const MaintenancePage = () => {
                 </table>
               </div>
               
-              {filteredMaintenance.filter(m => m.status === MaintenanceStatus.COMPLETED).length === 0 && (
+              {filteredMaintenance.filter(m => m.status === DocumentStatus.COMPLETED).length === 0 && (
                 <div className="p-8 text-center">
-                  <p className="text-muted-foreground">Nenhuma manutenção concluída</p>
+                  <p className="text-muted-foreground">Nenhum documento concluído</p>
                 </div>
               )}
             </div>
@@ -384,7 +374,7 @@ const MaintenancePage = () => {
         </main>
       </div>
       
-      {/* Add/Edit Maintenance Dialog */}
+      {/* Add/Edit Document Dialog */}
       <MaintenanceDialog 
         open={addDialogOpen} 
         onOpenChange={setAddDialogOpen}

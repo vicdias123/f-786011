@@ -6,82 +6,72 @@ import { Button } from "@/components/ui/button";
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
-import { Calendar, Clock, Filter, Plus, Search, Truck, User } from 'lucide-react';
-import { Operation } from '@/types';
+import { Calendar, Clock, Filter, Plus, Search, Scale, User } from 'lucide-react';
+import { LegalActivity } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import OperationDialog from '@/components/operations/OperationDialog';
 import OperationDetails from '@/components/operations/OperationDetails';
 
-// Mock data for operations
-const initialOperations: Operation[] = [
+// Mock data for legal activities
+const initialOperations: LegalActivity[] = [
   {
-    id: 'OP001',
-    operatorId: 'OP001',
-    operatorName: 'Carlos Silva',
-    forkliftId: 'G001',
-    forkliftModel: 'Toyota 8FGU25',
-    sector: 'Armazém A',
-    initialHourMeter: 12500,
-    currentHourMeter: 12583,
-    gasConsumption: 25.5,
+    id: 'ACT001',
+    lawyerId: 'ADV001',
+    lawyerName: 'Carlos Silva',
+    caseId: 'CASO001',
+    caseNumber: 'PROC-2023-001',
+    activityType: 'Audiência',
+    description: 'Audiência de conciliação no Tribunal de Justiça',
+    initialTime: 8,
+    currentTime: 10,
+    billableHours: 2,
     startTime: '2023-11-20T08:00:00',
     status: 'active'
   },
   {
-    id: 'OP002',
-    operatorId: 'OP002',
-    operatorName: 'Maria Oliveira',
-    forkliftId: 'E002',
-    forkliftModel: 'Hyster E50XN',
-    sector: 'Expedição',
-    initialHourMeter: 8400,
-    currentHourMeter: 8452,
+    id: 'ACT002',
+    lawyerId: 'ADV002',
+    lawyerName: 'Maria Oliveira',
+    caseId: 'CASO002',
+    caseNumber: 'PROC-2023-002',
+    activityType: 'Análise de documentos',
+    description: 'Revisão de contratos e documentos do processo',
+    initialTime: 14,
+    currentTime: 16,
     startTime: '2023-11-20T14:00:00',
     status: 'active'
   },
   {
-    id: 'OP003',
-    operatorId: 'OP003',
-    operatorName: 'João Pereira',
-    forkliftId: 'G004',
-    forkliftModel: 'Yale GLP050',
-    sector: 'Recebimento',
-    initialHourMeter: 6700,
-    currentHourMeter: 6782,
-    gasConsumption: 18.2,
-    startTime: '2023-11-19T22:00:00',
-    endTime: '2023-11-20T06:00:00',
+    id: 'ACT003',
+    lawyerId: 'ADV003',
+    lawyerName: 'João Pereira',
+    caseId: 'CASO003',
+    caseNumber: 'PROC-2023-003',
+    activityType: 'Reunião com cliente',
+    description: 'Reunião para esclarecimentos sobre o processo',
+    initialTime: 10,
+    currentTime: 12,
+    billableHours: 2,
+    startTime: '2023-11-19T10:00:00',
+    endTime: '2023-11-19T12:00:00',
     status: 'completed'
-  },
-  {
-    id: 'OP004',
-    operatorId: 'OP004',
-    operatorName: 'Ana Costa',
-    forkliftId: 'E002',
-    forkliftModel: 'Hyster E50XN',
-    sector: 'Armazém B',
-    initialHourMeter: 8350,
-    currentHourMeter: 8400,
-    startTime: '2023-11-19T08:00:00',
-    endTime: '2023-11-19T16:00:00',
-    status: 'completed'
-  },
+  }
 ];
 
-// Mock data for available operators and forklifts
+// Mock data for available lawyers and cases
 const availableOperators = [
-  { id: 'OP001', name: 'Carlos Silva' },
-  { id: 'OP002', name: 'Maria Oliveira' },
-  { id: 'OP003', name: 'João Pereira' },
-  { id: 'OP004', name: 'Ana Costa' },
-  { id: 'OP005', name: 'Pedro Santos' }
+  { id: 'ADV001', name: 'Carlos Silva' },
+  { id: 'ADV002', name: 'Maria Oliveira' },
+  { id: 'ADV003', name: 'João Pereira' },
+  { id: 'ADV004', name: 'Ana Costa' },
+  { id: 'ADV005', name: 'Pedro Santos' }
 ];
 
 const availableForklifts = [
-  { id: 'G001', model: 'Toyota 8FGU25' },
-  { id: 'G004', model: 'Yale GLP050' },
-  { id: 'E002', model: 'Hyster E50XN' },
-  { id: 'G006', model: 'Caterpillar DP40' }
+  { id: 'CASO001', model: 'PROC-2023-001' },
+  { id: 'CASO002', model: 'PROC-2023-002' },
+  { id: 'CASO003', model: 'PROC-2023-003' },
+  { id: 'CASO004', model: 'PROC-2023-004' }
 ];
 
 const OperationsPage = () => {
@@ -89,30 +79,30 @@ const OperationsPage = () => {
   const { toast } = useToast();
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState<string>('all');
-  const [sector, setSector] = useState<string>('all');
-  const [operations, setOperations] = useState<Operation[]>(initialOperations);
+  const [activityType, setActivityType] = useState<string>('all');
+  const [operations, setOperations] = useState<LegalActivity[]>(initialOperations);
   
   // Dialog states
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
-  const [selectedOperation, setSelectedOperation] = useState<Operation | null>(null);
+  const [selectedOperation, setSelectedOperation] = useState<LegalActivity | null>(null);
   
   // Filter operations based on search and filters
   const filteredOperations = operations.filter(operation => {
     // Search filter
-    const matchesSearch = operation.operatorName.toLowerCase().includes(search.toLowerCase()) || 
-                          operation.forkliftModel.toLowerCase().includes(search.toLowerCase()) ||
-                          operation.sector.toLowerCase().includes(search.toLowerCase()) ||
+    const matchesSearch = operation.lawyerName.toLowerCase().includes(search.toLowerCase()) || 
+                          operation.caseNumber.toLowerCase().includes(search.toLowerCase()) ||
+                          operation.activityType.toLowerCase().includes(search.toLowerCase()) ||
                           operation.id.toLowerCase().includes(search.toLowerCase());
     
     // Status filter
     const matchesStatus = status === 'all' || operation.status === status;
     
-    // Sector filter
-    const matchesSector = sector === 'all' || operation.sector === sector;
+    // Activity type filter
+    const matchesActivityType = activityType === 'all' || operation.activityType === activityType;
     
-    return matchesSearch && matchesStatus && matchesSector;
+    return matchesSearch && matchesStatus && matchesActivityType;
   });
 
   // Format date
@@ -134,19 +124,19 @@ const OperationsPage = () => {
     });
   };
   
-  // Get unique sectors for filter
-  const sectors = [...new Set(operations.map(op => op.sector))];
+  // Get unique activity types for filter
+  const activityTypes = [...new Set(operations.map(op => op.activityType))];
 
   // Handle save operation
-  const handleSaveOperation = (operationData: Operation) => {
+  const handleSaveOperation = (operationData: LegalActivity) => {
     const isNewOperation = !operations.some(op => op.id === operationData.id);
     
     if (isNewOperation) {
       // Add new operation
       setOperations(prev => [operationData, ...prev]);
       toast({
-        title: "Operação criada",
-        description: "A operação foi criada com sucesso."
+        title: "Atividade criada",
+        description: "A atividade jurídica foi criada com sucesso."
       });
     } else {
       // Update existing operation
@@ -154,14 +144,14 @@ const OperationsPage = () => {
         prev.map(op => op.id === operationData.id ? operationData : op)
       );
       toast({
-        title: "Operação atualizada",
-        description: "A operação foi atualizada com sucesso."
+        title: "Atividade atualizada",
+        description: "A atividade jurídica foi atualizada com sucesso."
       });
     }
   };
 
   // Open details dialog
-  const handleViewDetails = (operation: Operation) => {
+  const handleViewDetails = (operation: LegalActivity) => {
     setSelectedOperation(operation);
     setDetailsDialogOpen(true);
   };
@@ -178,11 +168,11 @@ const OperationsPage = () => {
       
       <div className={cn(
         "flex-1 flex flex-col",
-        !isMobile && "ml-64" // Offset for sidebar when not mobile
+        !isMobile && "ml-64"
       )}>
         <Navbar 
-          title="Operações" 
-          subtitle="Controle de Operações"
+          title="Atividades Jurídicas" 
+          subtitle="Controle de Atividades"
         />
         
         <main className="flex-1 px-6 py-6">
@@ -192,7 +182,7 @@ const OperationsPage = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
               <Input 
                 type="text" 
-                placeholder="Buscar operação..." 
+                placeholder="Buscar atividade..." 
                 className="pl-10"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -213,7 +203,7 @@ const OperationsPage = () => {
                 }}
               >
                 <Plus className="w-4 h-4" />
-                Nova Operação
+                Nova Atividade
               </Button>
             </div>
           </div>
@@ -233,23 +223,23 @@ const OperationsPage = () => {
               </select>
             </div>
             <div className="space-y-2">
-              <h4 className="text-sm font-medium">Setor</h4>
+              <h4 className="text-sm font-medium">Tipo de Atividade</h4>
               <select 
                 className="w-full p-2 rounded-md border border-input bg-background"
-                value={sector}
-                onChange={(e) => setSector(e.target.value)}
+                value={activityType}
+                onChange={(e) => setActivityType(e.target.value)}
               >
                 <option value="all">Todos</option>
-                {sectors.map((s) => (
-                  <option key={s} value={s}>{s}</option>
+                {activityTypes.map((type) => (
+                  <option key={type} value={type}>{type}</option>
                 ))}
               </select>
             </div>
           </div>
           
-          {/* Active Operations */}
+          {/* Active Activities */}
           <div className="mb-8">
-            <h2 className="text-2xl font-semibold mb-4">Operações em Andamento</h2>
+            <h2 className="text-2xl font-semibold mb-4">Atividades em Andamento</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredOperations
                 .filter(op => op.status === 'active')
@@ -258,7 +248,7 @@ const OperationsPage = () => {
                     <div className="p-4">
                       <div className="flex justify-between items-start mb-3">
                         <div>
-                          <h3 className="font-medium">{operation.operatorName}</h3>
+                          <h3 className="font-medium">{operation.lawyerName}</h3>
                           <p className="text-sm text-muted-foreground">ID: {operation.id}</p>
                         </div>
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs bg-status-operational/10 text-status-operational">
@@ -268,12 +258,12 @@ const OperationsPage = () => {
                       
                       <div className="space-y-2">
                         <div className="flex items-center gap-2">
-                          <Truck className="w-4 h-4 text-muted-foreground" />
-                          <span className="text-sm">{operation.forkliftModel} ({operation.forkliftId})</span>
+                          <Scale className="w-4 h-4 text-muted-foreground" />
+                          <span className="text-sm">{operation.caseNumber} ({operation.caseId})</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <User className="w-4 h-4 text-muted-foreground" />
-                          <span className="text-sm">{operation.operatorName}</span>
+                          <span className="text-sm">{operation.lawyerName}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <Calendar className="w-4 h-4 text-muted-foreground" />
@@ -287,7 +277,7 @@ const OperationsPage = () => {
                     </div>
                     
                     <div className="border-t px-4 py-3 bg-muted/30 flex justify-between">
-                      <span className="text-sm">Setor: {operation.sector}</span>
+                      <span className="text-sm">Tipo: {operation.activityType}</span>
                       <Button 
                         variant="ghost" 
                         size="sm"
@@ -301,24 +291,24 @@ const OperationsPage = () => {
               
               {filteredOperations.filter(op => op.status === 'active').length === 0 && (
                 <div className="col-span-full p-8 text-center bg-card border rounded-lg">
-                  <p className="text-muted-foreground">Nenhuma operação em andamento</p>
+                  <p className="text-muted-foreground">Nenhuma atividade em andamento</p>
                 </div>
               )}
             </div>
           </div>
           
-          {/* Completed Operations */}
+          {/* Completed Activities */}
           <div>
-            <h2 className="text-2xl font-semibold mb-4">Operações Concluídas</h2>
+            <h2 className="text-2xl font-semibold mb-4">Atividades Concluídas</h2>
             <div className="bg-card rounded-lg shadow overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead className="bg-muted/50">
                     <tr>
                       <th className="p-4 text-left font-medium text-muted-foreground">ID</th>
-                      <th className="p-4 text-left font-medium text-muted-foreground">Operador</th>
-                      <th className="p-4 text-left font-medium text-muted-foreground">Empilhadeira</th>
-                      <th className="p-4 text-left font-medium text-muted-foreground">Setor</th>
+                      <th className="p-4 text-left font-medium text-muted-foreground">Advogado</th>
+                      <th className="p-4 text-left font-medium text-muted-foreground">Caso</th>
+                      <th className="p-4 text-left font-medium text-muted-foreground">Tipo</th>
                       <th className="p-4 text-left font-medium text-muted-foreground">Data</th>
                       <th className="p-4 text-left font-medium text-muted-foreground">Período</th>
                       <th className="p-4 text-left font-medium text-muted-foreground">Ações</th>
@@ -330,12 +320,12 @@ const OperationsPage = () => {
                       .map((operation) => (
                         <tr key={operation.id} className="hover:bg-muted/50 transition-colors">
                           <td className="p-4">{operation.id}</td>
-                          <td className="p-4">{operation.operatorName}</td>
+                          <td className="p-4">{operation.lawyerName}</td>
                           <td className="p-4">
-                            <div>{operation.forkliftModel}</div>
-                            <div className="text-xs text-muted-foreground">{operation.forkliftId}</div>
+                            <div>{operation.caseNumber}</div>
+                            <div className="text-xs text-muted-foreground">{operation.caseId}</div>
                           </td>
-                          <td className="p-4">{operation.sector}</td>
+                          <td className="p-4">{operation.activityType}</td>
                           <td className="p-4">{formatDate(operation.startTime)}</td>
                           <td className="p-4">
                             {formatTime(operation.startTime)} - {operation.endTime ? formatTime(operation.endTime) : 'Em andamento'}
@@ -357,7 +347,7 @@ const OperationsPage = () => {
               
               {filteredOperations.filter(op => op.status === 'completed').length === 0 && (
                 <div className="p-8 text-center">
-                  <p className="text-muted-foreground">Nenhuma operação concluída</p>
+                  <p className="text-muted-foreground">Nenhuma atividade concluída</p>
                 </div>
               )}
             </div>
@@ -365,7 +355,7 @@ const OperationsPage = () => {
         </main>
       </div>
 
-      {/* Add Operation Dialog */}
+      {/* Add Activity Dialog */}
       <OperationDialog
         open={addDialogOpen}
         onOpenChange={setAddDialogOpen}
@@ -374,7 +364,7 @@ const OperationsPage = () => {
         availableForklifts={availableForklifts}
       />
       
-      {/* Edit Operation Dialog */}
+      {/* Edit Activity Dialog */}
       <OperationDialog
         open={editDialogOpen}
         onOpenChange={setEditDialogOpen}
@@ -384,7 +374,7 @@ const OperationsPage = () => {
         availableForklifts={availableForklifts}
       />
       
-      {/* Operation Details Dialog */}
+      {/* Activity Details Dialog */}
       <OperationDetails
         open={detailsDialogOpen}
         onOpenChange={setDetailsDialogOpen}
